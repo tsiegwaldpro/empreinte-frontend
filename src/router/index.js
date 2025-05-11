@@ -9,6 +9,9 @@ import Home from "@/pages/Home.vue";
 import Audit from "@/pages/Audit.vue";
 import Dashboard from "@/pages/Dashboard.vue";
 import NotFound from "@/pages/NotFound.vue";
+import Login from "@/pages/Login.vue";
+import Register from "@/pages/Register.vue";
+import Confirm from "@/pages/Confirm.vue";
 
 const routes = [
   {
@@ -19,6 +22,27 @@ const routes = [
         path: "",
         name: "Home",
         component: Home,
+      },
+      {
+        path: "/login",
+        name: "Login",
+        component: Login,
+      },
+      {
+        path: "register",
+        name: "Register",
+        component: Register,
+      },
+      {
+        path: "/confirm/:token",
+        name: "Confirm",
+        component: Confirm,
+      },
+      {
+        path: "/dashboard",
+        component: DashboardLayout,
+        name: "Dashboard",
+        component: Dashboard,
       },
     ],
   },
@@ -33,17 +57,7 @@ const routes = [
       },
     ],
   },
-  {
-    path: "/dashboard",
-    component: DashboardLayout,
-    children: [
-      {
-        path: "",
-        name: "Dashboard",
-        component: Dashboard,
-      },
-    ],
-  },
+
   {
     path: "/:pathMatch(.*)*",
     name: "NotFound",

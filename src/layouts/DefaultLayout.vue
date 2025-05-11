@@ -1,13 +1,14 @@
 <template>
   <v-app>
+    <Header />
     <v-main>
-      <slot />
+      <router-view />
     </v-main>
+    <Footer />
   </v-app>
 </template>
 
-<script>
-export default {
-  name: "DefaultLayout",
-};
+<script setup>
+import Header from "@/components/Header.vue";
+import Footer from "@/components/Footer.vue";
 </script>
