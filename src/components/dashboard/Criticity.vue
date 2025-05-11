@@ -1,5 +1,5 @@
 <template>
-  <v-card class="criticity-card" elevation="2">
+  <v-card class="h-100 d-flex flex-column justify-space-between" elevation="2">
     <v-card-title class="text-subtitle-1 font-weight-bold"
       >🔥 Criticité</v-card-title
     >
@@ -10,7 +10,6 @@
         :key="impact.icon"
         :active="modelValue === impact.icon"
         @click="$emit('update:modelValue', impact.icon)"
-        class="criticity-item"
       >
         <v-list-item-title>
           {{ impact.icon }} {{ impact.label }} ({{ count[impact.icon] || 0 }})
@@ -40,14 +39,3 @@ defineProps({
 
 defineEmits(["update:modelValue"]);
 </script>
-
-<style scoped>
-.criticity-card {
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-.criticity-item {
-  cursor: pointer;
-  border-radius: 8px;
-}
-</style>

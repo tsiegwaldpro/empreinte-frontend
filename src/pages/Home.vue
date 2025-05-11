@@ -48,14 +48,6 @@
 
     <p v-if="error" class="text-red mb-10 text-center">{{ error }}</p>
 
-    <v-progress-circular
-      v-if="loading"
-      indeterminate
-      color="primary"
-      size="48"
-      class="d-block mx-auto mb-10"
-    ></v-progress-circular>
-
     <section class="mb-10">
       <h2 class="text-h5 mb-2">Pourquoi l’éco-conception web ?</h2>
       <p>

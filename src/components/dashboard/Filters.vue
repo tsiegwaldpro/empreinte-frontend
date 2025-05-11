@@ -1,22 +1,26 @@
 <template>
-  <v-card class="filters-card" elevation="2" v-if="groups.length">
-    <v-card-title class="text-subtitle-1 font-weight-bold"
-      >🔎 Filtres</v-card-title
-    >
+  <v-card
+    class="fill-height w-100 d-flex flex-column justify-space-between"
+    elevation="2"
+  >
+    <v-card-title class="text-subtitle-1 font-weight-bold">
+      🔎 Filtres
+    </v-card-title>
 
-    <v-list density="compact" class="text-white">
-      <v-list-item
+    <v-card-text class="d-flex flex-wrap gap-2">
+      <v-chip
         v-for="group in groups"
         :key="group"
-        :active="modelValue === group"
+        :color="modelValue === group ? 'primary' : 'grey-darken-3'"
+        class="text-white"
         @click="$emit('update:modelValue', group)"
-        class="filter-item"
+        size="small"
+        variant="flat"
+        filter
       >
-        <v-list-item-title>
-          {{ group }} ({{ count[group] || 0 }})
-        </v-list-item-title>
-      </v-list-item>
-    </v-list>
+        {{ group }} ({{ count[group] || 0 }})
+      </v-chip>
+    </v-card-text>
 
     <v-card-actions v-if="modelValue" class="justify-center">
       <v-btn
@@ -40,14 +44,3 @@ defineProps({
 
 defineEmits(["update:modelValue"]);
 </script>
-
-<style scoped>
-.filters-card {
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-.filter-item {
-  cursor: pointer;
-  border-radius: 8px;
-}
-</style>

@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="dashboard-view py-6">
     <!-- Ligne du haut : Résumés -->
-    <v-row dense class="mb-6" v-if="audit">
-      <v-col cols="12" md="3">
+    <v-row dense class="mb-6" align="stretch" v-if="audit">
+      <v-col cols="12" md="3" class="d-flex">
         <ScoreList
           :performance="audit.performance"
           :accessibility="audit.accessibility"
@@ -11,24 +11,25 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col cols="12" md="3" class="d-flex">
         <Footprint :empreinte="audit.empreinte" />
       </v-col>
 
-      <v-col cols="12" md="3">
-        <Filters
+      <v-col cols="12" md="3" class="d-flex">
+        <FiltersAndCriticity
           :groups="groupNames"
-          :count="groupCounts"
-          v-model="selectedGroup"
+          :groupCounts="groupCounts"
+          :impactCounts="impactCounts"
+          :levels="impactLevels"
+          :selectedGroup="selectedGroup"
+          :selectedImpact="selectedImpact"
+          @update:selectedGroup="selectedGroup = $event"
+          @update:selectedImpact="selectedImpact = $event"
         />
       </v-col>
 
-      <v-col cols="12" md="3">
-        <Criticity
-          :levels="impactLevels"
-          :count="impactCounts"
-          v-model="selectedImpact"
-        />
+      <v-col cols="12" md="3" class="d-flex">
+        <ToolFootprint />
       </v-col>
     </v-row>
 
@@ -63,8 +64,6 @@
 
       <!-- Zone outils -->
       <v-col cols="12" md="3">
-        <ToolFootprint />
-
         <v-btn
           class="my-4"
           @click="relaunchAudit"
@@ -107,8 +106,7 @@ import axios from "axios";
 
 import ScoreList from "@/components/dashboard/ScoreList.vue";
 import Footprint from "@/components/dashboard/FootPrint.vue";
-import Filters from "@/components/dashboard/Filters.vue";
-import Criticity from "@/components/dashboard/Criticity.vue";
+import FiltersAndCriticity from "@/components/dashboard/FiltersAndCriticity.vue";
 import RecommendationGroup from "@/components/dashboard/RecommendationGroup.vue";
 import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
 import CategorySummary from "@/components/dashboard/CategorySummary.vue";

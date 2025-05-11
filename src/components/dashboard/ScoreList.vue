@@ -1,18 +1,30 @@
 <template>
-  <v-card class="score-card" elevation="2">
-    <v-card-title class="text-subtitle-1 font-weight-bold"
-      >🔍 Résultats</v-card-title
-    >
+  <v-card class="fill-height w-100 d-flex flex-column" elevation="2">
+    <v-card-title class="text-subtitle-1 font-weight-bold">
+      🔍 Résultats
+    </v-card-title>
 
-    <v-card-text class="d-flex flex-column gap-3">
-      <div
-        v-for="(value, key) in scores"
-        :key="key"
-        class="score-line"
-        :style="colorStyle(value)"
-      >
-        <span>{{ iconMap[key] }} {{ labelMap[key] }} : {{ value }}%</span>
-      </div>
+    <v-card-text class="mt-2">
+      <v-row dense>
+        <v-col
+          cols="12"
+          sm="6"
+          class="pb-2"
+          v-for="(value, key) in scores"
+          :key="key"
+        >
+          <v-card
+            :style="colorStyle(value)"
+            class="pa-3 text-white"
+            elevation="1"
+          >
+            <div class="text-subtitle-2 font-weight-medium">
+              {{ iconMap[key] }} {{ labelMap[key] }}
+            </div>
+            <div class="text-h5 font-mono mt-2">{{ value }}%</div>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>
@@ -47,21 +59,8 @@ const labelMap = {
 };
 
 const colorStyle = (score) => {
-  if (score >= 90)
-    return { borderLeft: "6px solid limegreen", paddingLeft: "8px" };
-  if (score >= 60)
-    return { borderLeft: "6px solid orange", paddingLeft: "8px" };
-  return { borderLeft: "6px solid crimson", paddingLeft: "8px" };
+  if (score >= 90) return { borderLeft: "6px solid limegreen" };
+  if (score >= 60) return { borderLeft: "6px solid orange" };
+  return { borderLeft: "6px solid crimson" };
 };
 </script>
-
-<style scoped>
-.score-card {
-  background-color: #1e1e1e;
-  border-radius: 12px;
-}
-.score-line {
-  font-size: 1rem;
-  color: #eee;
-}
-</style>
