@@ -1,7 +1,6 @@
 <template>
   <v-container fluid class="dashboard-view py-6">
     <!-- Ligne du haut : Résumés -->
-    <!-- Bloc d’en-tête recommandations -->
     <v-col cols="12" md="12" class="mb-6">
       <v-card elevation="2" class="pa-4">
         <v-card-title class="text-h6 font-weight-bold">
@@ -34,6 +33,7 @@
           :accessibility="audit.accessibility"
           :bestPractices="audit.bestPractices"
           :seo="audit.seo"
+          :referenceScores="referenceScores"
         />
       </v-col>
 
@@ -77,36 +77,15 @@
 
       <!-- Zone outils -->
       <v-col cols="12" md="3">
-        <v-btn
-          class="my-4"
-          @click="relaunchAudit"
-          :loading="isReloading"
-          block
-          color="primary"
-        >
-          🔄 Relancer l’audit
-        </v-btn>
-
-        <div v-if="filteredHistory.length">
-          <h3 class="text-subtitle-1 mb-2">🕘 Audits précédents</h3>
-          <v-list class="bg-transparent">
-            <v-list-item
-              v-for="a in [...filteredHistory].reverse()"
-              :key="a._id"
-              :active="a._id === audit._id"
-              @click="loadAudit(a)"
-              rounded
-              class="px-3"
-            >
-              <v-list-item-title>
-                {{ formatDate(a.createdAt) }}
-              </v-list-item-title>
-              <v-list-item-subtitle v-if="a._id === history.at(-1)._id">
-                plus récent
-              </v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
-        </div>
+        <AuditHistory
+          :referenceAudit="referenceAudit"
+          :pastAudits="pastAudits"
+          :currentAuditId="audit?._id"
+          :lastAuditId="history.at(-1)?._id"
+          :isReloading="isReloading"
+          @relaunch="relaunchAudit"
+          @select="loadAudit"
+        />
       </v-col>
     </v-row>
   </v-container>
@@ -123,6 +102,7 @@ import FiltersAndCriticity from "@/components/dashboard/FiltersAndCriticity.vue"
 import RecommendationGroup from "@/components/dashboard/RecommendationGroup.vue";
 import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
 import CategorySummary from "@/components/dashboard/CategorySummary.vue";
+import AuditHistory from "@/components/dashboard/AuditHistory.vue";
 
 const route = useRoute();
 const site = computed(() => route.query.site || "default");
@@ -132,18 +112,27 @@ const history = ref([]);
 const selectedGroup = ref(null);
 const selectedImpact = ref(null);
 const isReloading = ref(false);
+const referenceScores = ref(null);
 
 const doneRecos = ref(new Set());
 const allRecs = ref([]);
 
 watch(audit, (val) => {
-  console.log("Nouvel audit chargé :", val);
   loadDoneRecos();
   if (val?.recommandations && Array.isArray(val.recommandations)) {
     allRecs.value = val.recommandations;
   } else {
     allRecs.value = [];
   }
+});
+
+const referenceAudit = computed(() => {
+  return history.value.length ? history.value.at(-1) : null;
+});
+
+const pastAudits = computed(() => {
+  if (!referenceAudit.value) return [];
+  return history.value.filter((a) => a._id !== referenceAudit.value._id);
 });
 
 const impactLevels = [
@@ -169,10 +158,6 @@ const loadDoneRecos = () => {
   doneRecos.value = new Set(data[site.value] || []);
 };
 
-const isRecoDone = (id) => {
-  return doneRecos.value.has(id);
-};
-
 const groupedRecommandations = computed(() => {
   if (!audit.value?.recommandations) return {};
   const grouped = {};
@@ -188,9 +173,16 @@ const relaunchAudit = async () => {
   isReloading.value = true;
 
   try {
-    const res = await axios.post("http://localhost:3000/api/audit", {
-      url: audit.value.url,
-    });
+    const token = localStorage.getItem("token");
+    const res = await axios.post(
+      "http://localhost:3000/api/audit",
+      { url: audit.value.url },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const auditWithDate = {
       ...res.data,
@@ -213,7 +205,7 @@ const groupNames = computed(() => Object.keys(groupedRecommandations.value));
 const groupCounts = computed(() => {
   const counts = {};
   for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const active = recs.filter((r) => !isRecoDone(r.id));
+    const active = recs.filter((r) => !doneRecos.value.has(r.id));
     if (active.length > 0) counts[group] = active.length;
   }
   return counts;
@@ -223,7 +215,7 @@ const impactCounts = computed(() => {
   const counts = { "💥": 0, "⚠️": 0, "🟢": 0 };
   for (const group of Object.values(groupedRecommandations.value)) {
     for (const rec of group) {
-      if (!isRecoDone(rec.id) && rec.impactLevel in counts) {
+      if (!doneRecos.value.has(rec.id) && rec.impactLevel in counts) {
         counts[rec.impactLevel] += 1;
       }
     }
@@ -235,10 +227,6 @@ const loadAudit = (a) => {
   audit.value = a;
 };
 
-const resetAudit = () => {
-  audit.value = history.value.at(-1);
-};
-
 const filteredHistory = computed(() => {
   if (!audit.value?.url) return [];
   return history.value.filter(
@@ -246,11 +234,35 @@ const filteredHistory = computed(() => {
   );
 });
 
+const fetchReferenceAudit = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const siteParam = encodeURIComponent(
+      site.value.toLowerCase().replace(/\/+\$/, "")
+    );
+    const res = await axios.get(
+      `http://localhost:3000/api/audit/reference?site=${siteParam}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    referenceScores.value = {
+      performance: res.data.performance,
+      accessibility: res.data.accessibility,
+      bestPractices: res.data.bestPractices,
+      seo: res.data.seo,
+    };
+  } catch (err) {
+    console.error("Erreur référence :", err);
+  }
+};
+
 const fetchAuditData = async () => {
   try {
     const token = localStorage.getItem("token");
     const siteParam = encodeURIComponent(
-      site.value.replace(/\/+$/, "").toLowerCase()
+      site.value.replace(/\/+\$/, "").toLowerCase()
     );
 
     const res = await axios.get(
@@ -265,7 +277,8 @@ const fetchAuditData = async () => {
     history.value = res.data.reverse();
     audit.value = history.value.at(-1) || null;
 
-    // 🔁 Fallback localStorage si pas de résultat
+    await fetchReferenceAudit();
+
     if (!audit.value) {
       const local = localStorage.getItem("lastAudit");
       if (local) {
@@ -283,7 +296,6 @@ onMounted(() => {
 });
 
 watch(site, (newVal, oldVal) => {
-  console.log("Changement de site détecté :", oldVal, "→", newVal);
   fetchAuditData();
 });
 </script>

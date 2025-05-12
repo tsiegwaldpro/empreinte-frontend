@@ -1,73 +1,87 @@
 <template>
   <v-container class="py-10 home-page text-white">
-    <v-snackbar
-      v-model="showWelcome"
-      color="success"
-      location="top end"
-      timeout="4000"
-      multi-line
-      variant="flat"
-    >
-      👋 Bienvenue{{ firstName ? ` ${firstName}` : "" }} !
-    </v-snackbar>
-
-    <v-snackbar
-      v-model="showBanner"
-      color="success"
-      location="top end"
-      timeout="4000"
-      multi-line
-      variant="flat"
-    >
-      📩 Un email de confirmation t’a été envoyé. Clique sur le lien pour
-      activer ton compte.
-    </v-snackbar>
-
     <section class="text-center mb-10">
       <h1 class="text-h3 font-weight-bold mb-2">🌱 Empreinte</h1>
       <p class="text-subtitle-1 mb-1">
-        L’audit qui mesure l’impact environnemental de votre site web.
+        L’outil qui mesure l’impact environnemental de votre site web.
       </p>
-      <p class="text-body-2 text-grey-lighten-1">
-        ⏱ En moins de 30 secondes, obtenez des recommandations concrètes.
+      <p class="text-body-2 text-grey-lighten-1 mb-4">
+        Obtenez des recommandations concrètes pour éco-concevoir vos pages.
       </p>
+      <v-btn
+        color="primary"
+        class="text-white font-weight-bold text-uppercase"
+        to="/register"
+      >
+        Créer un compte gratuitement
+      </v-btn>
     </section>
 
-    <v-form @submit.prevent="handleAudit" class="mb-6">
-      <v-text-field
-        v-model="url"
-        :disabled="loading"
-        placeholder="Ex : thomassiegwald.fr"
-        hide-details
-        density="comfortable"
-        variant="outlined"
-        color="primary"
-        class="w-100"
-        style="--v-input-padding-inline-end: 0px"
-      >
-        <template #append-inner>
+    <section class="mb-10">
+      <h2 class="text-h5 mb-4 text-center">🧾 Comparez nos offres</h2>
+      <v-card color="grey-darken-4" elevation="4" class="pa-4">
+        <v-table class="text-white" density="comfortable">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="text-center">🧢 Freemium</th>
+              <th class="text-center">👑 Premium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Audit de la page d’accueil</td>
+              <td class="text-center">✅</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Audit complet via sitemap</td>
+              <td class="text-center">❌</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Recommandations personnalisées</td>
+              <td class="text-center">✅</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Priorité dans la file d’audit</td>
+              <td class="text-center">❌</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Historique des audits</td>
+              <td class="text-center">❌</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Actions concrètes pour chaque reco</td>
+              <td class="text-center">❌</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td>Export PDF</td>
+              <td class="text-center">❌</td>
+              <td class="text-center">✅</td>
+            </tr>
+            <tr>
+              <td class="font-weight-bold">Prix</td>
+              <td class="text-center font-weight-bold">Gratuit</td>
+              <td class="text-center font-weight-bold">9€/mois</td>
+            </tr>
+          </tbody>
+        </v-table>
+        <div class="text-center mt-6">
           <v-btn
-            :loading="loading"
-            type="submit"
             color="primary"
-            class="text-none pa-0"
-            style="
-              height: 100%;
-              border-top-left-radius: 0;
-              border-bottom-left-radius: 0;
-              border-top-right-radius: 4px;
-              border-bottom-right-radius: 4px;
-              min-width: 48px;
-            "
-            @click="handleAudit"
+            class="text-white font-weight-bold text-uppercase"
+            to="/register"
           >
-            🚀
+            Je crée mon compte
           </v-btn>
-        </template>
-      </v-text-field>
-    </v-form>
-
-    <p v-if="error" class="text-red mb-10 text-center">{{ error }}</p>
+        </div>
+      </v-card>
+    </section>
 
     <section class="mb-10">
       <h2 class="text-h5 mb-2">Pourquoi l’éco-conception web ?</h2>
@@ -128,75 +142,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
-
-const url = ref("https://restaurantaucoqdor.com/");
-const loading = ref(false);
-const error = ref(null);
-const showBanner = ref(false);
-const showWelcome = ref(false);
 
 const router = useRouter();
 
 onMounted(() => {
-  if (localStorage.getItem("showConfirmMessage") === "true") {
-    showBanner.value = true;
-    localStorage.removeItem("showConfirmMessage");
-    setTimeout(() => {
-      showBanner.value = false;
-    }, 4000);
-  }
-  if (localStorage.getItem("showWelcome") === "true") {
-    showWelcome.value = true;
-    localStorage.removeItem("showWelcome");
-
-    setTimeout(() => {
-      showWelcome.value = false;
-    }, 4000);
+  const token = localStorage.getItem("token");
+  if (token) {
+    router.replace({ name: "Dashboard" });
   }
 });
-
-const handleAudit = async () => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    router.push("/login");
-    return;
-  }
-
-  loading.value = true;
-  error.value = null;
-
-  try {
-    let formattedUrl = url.value.trim();
-    if (!formattedUrl.startsWith("http")) {
-      formattedUrl = "https://" + formattedUrl;
-    }
-
-    const res = await axios.post(
-      "http://localhost:3000/api/audit",
-      { url: formattedUrl },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const auditWithDate = {
-      ...res.data,
-      createdAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("lastAudit", JSON.stringify(auditWithDate));
-    router.push({ name: "Dashboard", query: { site: formattedUrl } });
-  } catch (err) {
-    error.value = "Erreur lors de l'audit. Vérifie l'URL.";
-    console.error(err);
-  } finally {
-    loading.value = false;
-  }
-};
 </script>

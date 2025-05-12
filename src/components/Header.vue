@@ -7,7 +7,7 @@
 
       <div>
         <v-btn
-          v-if="isAuthenticated"
+          v-if="auth.isAuthenticated"
           to="/dashboard"
           variant="text"
           class="text-white"
@@ -16,7 +16,7 @@
         </v-btn>
 
         <v-btn
-          v-if="!isAuthenticated"
+          v-if="!auth.isAuthenticated"
           to="/login"
           variant="text"
           class="text-white"
@@ -24,10 +24,21 @@
           Connexion
         </v-btn>
 
-        <v-btn v-else @click="logout" variant="text" class="text-white">
+        <v-btn
+          v-if="auth.isAuthenticated"
+          @click="logout"
+          variant="text"
+          class="text-white"
+        >
           Déconnexion
         </v-btn>
-        <v-btn v-if="isAuthenticated" to="/profile" icon class="text-white">
+
+        <v-btn
+          v-if="auth.isAuthenticated"
+          to="/profile"
+          icon
+          class="text-white"
+        >
           <v-icon>mdi-account-circle</v-icon>
         </v-btn>
       </div>
@@ -36,22 +47,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watchEffect } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 
-const isAuthenticated = ref(false);
 const router = useRouter();
-
-const checkAuth = () => {
-  isAuthenticated.value = !!localStorage.getItem("token");
-};
-
-// Réactif à chaque changement de localStorage (refresh/page load)
-onMounted(checkAuth);
-watchEffect(checkAuth);
+const auth = useAuthStore();
 
 const logout = () => {
-  localStorage.removeItem("token");
+  auth.logout();
   router.push("/login");
 };
 </script>

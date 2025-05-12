@@ -2,6 +2,41 @@
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">🌐 Vos sites audités</h1>
 
+    <section class="mb-10">
+      <v-form @submit.prevent="handleAudit" class="mb-4">
+        <v-row no-gutters>
+          <v-col cols="10">
+            <v-text-field
+              v-model="url"
+              :disabled="loading"
+              placeholder="Ex : thomassiegwald.fr"
+              hide-details
+              density="comfortable"
+              variant="outlined"
+              color="primary"
+              class="rounded-s"
+              style="border-top-right-radius: 0; border-bottom-right-radius: 0"
+            />
+          </v-col>
+          <v-col cols="2">
+            <v-btn
+              :loading="loading"
+              type="submit"
+              color="primary"
+              block
+              height="100%"
+              class="rounded-e"
+              style="border-top-left-radius: 0; border-bottom-left-radius: 0"
+            >
+              <v-icon>mdi-arrow-right</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-form>
+
+      <p v-if="error" class="text-red text-center">{{ error }}</p>
+    </section>
+
     <v-row class="mb-6">
       <v-col cols="12" md="4">
         <v-card class="pa-4" elevation="1">
@@ -59,7 +94,54 @@ const totalAudits = ref(0);
 const totalSites = ref(0);
 const latestAuditDate = ref("-");
 
+const url = ref("");
+const loading = ref(false);
+const error = ref(null);
+
 const router = useRouter();
+
+const handleAudit = async () => {
+  console.log("Audit déclenché avec :", url.value);
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    router.push("/login");
+    return;
+  }
+
+  loading.value = true;
+  error.value = null;
+
+  try {
+    let formattedUrl = url.value.trim();
+    if (!formattedUrl.startsWith("http")) {
+      formattedUrl = "https://" + formattedUrl;
+    }
+
+    const res = await axios.post(
+      "http://localhost:3000/api/audit",
+      { url: formattedUrl },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const auditWithDate = {
+      ...res.data,
+      createdAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem("lastAudit", JSON.stringify(auditWithDate));
+    router.push({ name: "DashboardAudit", query: { site: formattedUrl } });
+  } catch (err) {
+    error.value = "Erreur lors de l'audit. Vérifie l'URL.";
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 onMounted(async () => {
   try {

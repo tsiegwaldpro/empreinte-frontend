@@ -1,20 +1,22 @@
 <template>
-  <v-row dense class="category-summary mb-6">
-    <v-col v-for="cat in categories" :key="cat.key" cols="12" sm="6" md="3">
-      <v-card
-        class="text-center"
-        :style="{ backgroundColor: cat.color }"
-        elevation="4"
-      >
-        <v-card-title class="text-subtitle-1 font-weight-bold">
-          {{ cat.label }}
-        </v-card-title>
-        <v-card-text class="text-h6 font-mono">
-          {{ cat.done }} / {{ cat.total }}
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+  <v-card class="pa-4 mb-6 text-white" color="grey-darken-4" elevation="4">
+    <v-row dense class="category-summary">
+      <v-col v-for="cat in categories" :key="cat.key" cols="12" sm="6" md="3">
+        <v-card
+          class="text-center"
+          :style="{ backgroundColor: cat.color }"
+          flat
+        >
+          <v-card-title class="text-subtitle-1 font-weight-bold">
+            {{ cat.label }}
+          </v-card-title>
+          <v-card-text class="text-h6 font-mono">
+            {{ cat.done }} / {{ cat.total }}
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-card>
 </template>
 
 <script setup>

@@ -51,6 +51,9 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { useAuthStore } from "@/stores/auth";
+
+const auth = useAuthStore();
 
 const email = ref("siegwald.thomas@gmail.com");
 const password = ref("Yolo2015+");
@@ -69,7 +72,10 @@ const handleLogin = async () => {
     });
 
     const token = res.data.token;
-    localStorage.setItem("token", token);
+
+    // On utilise maintenant Pinia ici 👇
+    auth.login(token);
+
     localStorage.setItem("showWelcome", "true");
 
     router.push("/");

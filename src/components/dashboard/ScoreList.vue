@@ -21,7 +21,21 @@
             <div class="text-subtitle-2 font-weight-medium">
               {{ iconMap[key] }} {{ labelMap[key] }}
             </div>
-            <div class="text-h5 font-mono mt-2">{{ value }}%</div>
+
+            <div class="text-h5 font-mono mt-2">
+              {{ value }}%
+              <span
+                v-if="deltas[key] !== null && deltas[key] !== 0"
+                :class="{
+                  'text-green': deltas[key] > 0,
+                  'text-red': deltas[key] < 0,
+                  'text-grey': deltas[key] === 0,
+                }"
+                class="text-subtitle-2 ms-2"
+              >
+                ({{ deltas[key] > 0 ? "+" : "" }}{{ deltas[key] }}%)
+              </span>
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -30,19 +44,41 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 const props = defineProps({
   performance: Number,
   accessibility: Number,
   bestPractices: Number,
   seo: Number,
+  referenceScores: Object, // scores du 1er audit du site (optionnel)
 });
 
-const scores = {
+const scores = computed(() => ({
   performance: props.performance,
   accessibility: props.accessibility,
   bestPractices: props.bestPractices,
   seo: props.seo,
-};
+}));
+
+const deltas = computed(() => {
+  const ref = props.referenceScores;
+  if (!ref) {
+    return {
+      performance: null,
+      accessibility: null,
+      bestPractices: null,
+      seo: null,
+    };
+  }
+
+  return {
+    performance: props.performance - ref.performance,
+    accessibility: props.accessibility - ref.accessibility,
+    bestPractices: props.bestPractices - ref.bestPractices,
+    seo: props.seo - ref.seo,
+  };
+});
 
 const iconMap = {
   performance: "🚀",
