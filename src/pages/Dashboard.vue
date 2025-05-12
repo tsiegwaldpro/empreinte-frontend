@@ -38,7 +38,7 @@
       </v-col>
 
       <v-col cols="12" md="3" class="d-flex">
-        <Footprint :empreinte="audit.empreinte" />
+        <FootPrint :empreinte="audit.empreinte" />
       </v-col>
 
       <v-col cols="12" md="3" class="d-flex">
@@ -98,7 +98,7 @@ import { useRoute } from "vue-router";
 import axios from "axios";
 
 import ScoreList from "@/components/dashboard/ScoreList.vue";
-import Footprint from "@/components/dashboard/FootPrint.vue";
+import FootPrint from "@/components/dashboard/FootPrint.vue";
 import FiltersAndCriticity from "@/components/dashboard/FiltersAndCriticity.vue";
 import RecommendationGroup from "@/components/dashboard/RecommendationGroup.vue";
 import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
