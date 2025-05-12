@@ -7,6 +7,15 @@
 
       <div>
         <v-btn
+          v-if="isAuthenticated"
+          to="/dashboard"
+          variant="text"
+          class="text-white"
+        >
+          Dashboard
+        </v-btn>
+
+        <v-btn
           v-if="!isAuthenticated"
           to="/login"
           variant="text"
