@@ -43,6 +43,12 @@
           Pas encore de compte ? Créez-en un
         </v-btn>
       </v-card-actions>
+      <RouterLink
+        to="/forgot-password"
+        class="text-sm text-blue-400 hover:underline"
+      >
+        Mot de passe oublié ?
+      </RouterLink>
     </v-card>
   </v-container>
 </template>

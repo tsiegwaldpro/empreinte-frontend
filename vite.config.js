@@ -10,4 +10,13 @@ export default defineConfig({
     },
   },
   plugins: [vue(), vuetify({ autoImport: true })],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000", // backend local
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 });
