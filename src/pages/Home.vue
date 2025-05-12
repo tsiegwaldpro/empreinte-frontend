@@ -1,15 +1,27 @@
 <template>
   <v-container class="py-10 home-page text-white">
-    <v-alert
-      v-if="showBanner"
-      type="success"
-      variant="tonal"
-      class="mb-6"
-      border="start"
+    <v-snackbar
+      v-model="showWelcome"
+      color="success"
+      location="top end"
+      timeout="4000"
+      multi-line
+      variant="flat"
+    >
+      👋 Bienvenue{{ firstName ? ` ${firstName}` : "" }} !
+    </v-snackbar>
+
+    <v-snackbar
+      v-model="showBanner"
+      color="success"
+      location="top end"
+      timeout="4000"
+      multi-line
+      variant="flat"
     >
       📩 Un email de confirmation t’a été envoyé. Clique sur le lien pour
       activer ton compte.
-    </v-alert>
+    </v-snackbar>
 
     <section class="text-center mb-10">
       <h1 class="text-h3 font-weight-bold mb-2">🌱 Empreinte</h1>
@@ -21,29 +33,38 @@
       </p>
     </section>
 
-    <v-form
-      @submit.prevent="handleAudit"
-      class="d-flex align-center justify-center gap-4 mb-4"
-    >
+    <v-form @submit.prevent="handleAudit" class="mb-6">
       <v-text-field
         v-model="url"
         :disabled="loading"
         placeholder="Ex : thomassiegwald.fr"
         hide-details
         density="comfortable"
-        class="w-50"
         variant="outlined"
         color="primary"
-      />
-      <v-btn
-        :loading="loading"
-        type="submit"
-        color="primary"
-        size="large"
-        class="text-none"
+        class="w-100"
+        style="--v-input-padding-inline-end: 0px"
       >
-        🚀 Auditer mon site
-      </v-btn>
+        <template #append-inner>
+          <v-btn
+            :loading="loading"
+            type="submit"
+            color="primary"
+            class="text-none pa-0"
+            style="
+              height: 100%;
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+              border-top-right-radius: 4px;
+              border-bottom-right-radius: 4px;
+              min-width: 48px;
+            "
+            @click="handleAudit"
+          >
+            🚀
+          </v-btn>
+        </template>
+      </v-text-field>
     </v-form>
 
     <p v-if="error" class="text-red mb-10 text-center">{{ error }}</p>
@@ -115,6 +136,7 @@ const url = ref("https://restaurantaucoqdor.com/");
 const loading = ref(false);
 const error = ref(null);
 const showBanner = ref(false);
+const showWelcome = ref(false);
 
 const router = useRouter();
 
@@ -124,6 +146,14 @@ onMounted(() => {
     localStorage.removeItem("showConfirmMessage");
     setTimeout(() => {
       showBanner.value = false;
+    }, 4000);
+  }
+  if (localStorage.getItem("showWelcome") === "true") {
+    showWelcome.value = true;
+    localStorage.removeItem("showWelcome");
+
+    setTimeout(() => {
+      showWelcome.value = false;
     }, 4000);
   }
 });

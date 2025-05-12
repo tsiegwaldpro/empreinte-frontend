@@ -4,6 +4,10 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 
+// ✅ Ajout des icônes
+import { aliases, mdi } from "vuetify/iconsets/mdi";
+import "@mdi/font/css/materialdesignicons.css"; // ← indispensable
+
 const customTheme = {
   dark: true, // ← FORCÉ en dark mode
   colors: {
@@ -26,6 +30,13 @@ export default createVuetify({
     defaultTheme: "customTheme",
     themes: {
       customTheme,
+    },
+  },
+  icons: {
+    defaultSet: "mdi",
+    aliases,
+    sets: {
+      mdi,
     },
   },
 });

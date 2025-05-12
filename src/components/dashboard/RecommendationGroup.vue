@@ -17,10 +17,13 @@
             <template v-if="isRecoDone(r.id)">
               <div class="d-flex align-center">
                 <v-checkbox
-                  :model-value="true"
+                  :model-value="isRecoDone(r.id)"
                   @change="toggleRecoDone(r.id)"
                   hide-details
+                  density="compact"
                   class="me-2"
+                  color="primary"
+                  :ripple="false"
                 />
                 <div class="text-body-2 text-green">✔ {{ r.title }}</div>
               </div>
@@ -30,10 +33,13 @@
             <template v-else>
               <div class="d-flex align-center mb-1">
                 <v-checkbox
-                  :model-value="false"
+                  :model-value="isRecoDone(r.id)"
                   @change="toggleRecoDone(r.id)"
                   hide-details
+                  density="compact"
                   class="me-2"
+                  color="primary"
+                  :ripple="false"
                 />
                 <div class="text-body-1 font-weight-medium">
                   {{ r.title }}

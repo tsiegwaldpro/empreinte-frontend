@@ -70,7 +70,9 @@ const handleLogin = async () => {
 
     const token = res.data.token;
     localStorage.setItem("token", token);
-    router.push("/dashboard");
+    localStorage.setItem("showWelcome", "true");
+
+    router.push("/");
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || "Erreur lors de la connexion";
