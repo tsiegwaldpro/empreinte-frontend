@@ -18,7 +18,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import axios from "axios";
+import api from "@/api"; // ✅ appel centralisé
 
 const route = useRoute();
 const router = useRouter();
@@ -28,7 +28,7 @@ const loading = ref(true);
 onMounted(async () => {
   try {
     const token = route.params.token;
-    await axios.get(`http://localhost:3000/api/auth/confirm/${token}`);
+    await api.get(`/api/auth/confirm/${token}`); // ✅ plus d'URL en dur
     message.value =
       "✅ Ton compte est confirmé ! Tu peux maintenant te connecter.";
   } catch (err) {

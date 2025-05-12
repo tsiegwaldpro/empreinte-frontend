@@ -95,7 +95,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
-import axios from "axios";
+import api from "@/api"; // ✅ centralisé
 
 import ScoreList from "@/components/dashboard/ScoreList.vue";
 import FootPrint from "@/components/dashboard/FootPrint.vue";
@@ -169,8 +169,8 @@ const relaunchAudit = async () => {
 
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.post(
-      "http://localhost:3000/api/audit",
+    const res = await api.post(
+      "/api/audit",
       { url: audit.value.url },
       {
         headers: {
@@ -237,12 +237,9 @@ const fetchReferenceAudit = async () => {
     const siteParam = encodeURIComponent(
       site.value.toLowerCase().replace(/\/+\$/, "")
     );
-    const res = await axios.get(
-      `http://localhost:3000/api/audit/reference?site=${siteParam}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const res = await api.get(`/api/audit/reference?site=${siteParam}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     referenceScores.value = {
       performance: res.data.performance,
@@ -262,14 +259,11 @@ const fetchAuditData = async () => {
       site.value.replace(/\/+\$/, "").toLowerCase()
     );
 
-    const res = await axios.get(
-      `http://localhost:3000/api/audit/history?site=${siteParam}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const res = await api.get(`/api/audit/history?site=${siteParam}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     history.value = res.data.reverse();
     audit.value = history.value.at(-1) || null;

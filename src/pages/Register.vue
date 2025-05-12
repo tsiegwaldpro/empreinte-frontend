@@ -90,7 +90,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import api from "@/api"; // ✅ instance centralisée
 
 const firstName = ref("Thomas");
 const lastName = ref("Siegwald");
@@ -115,7 +115,7 @@ const handleRegister = async () => {
   }
 
   try {
-    await axios.post("http://localhost:3000/api/auth/register", {
+    await api.post("/api/auth/register", {
       firstName: firstName.value,
       lastName: lastName.value,
       email: email.value,

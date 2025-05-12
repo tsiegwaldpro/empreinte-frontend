@@ -17,6 +17,7 @@
 
 <script setup>
 import { ref } from "vue";
+import api from "@/api"; // ✅ on utilise l'instance centralisée
 
 const email = ref("siegwald.thomas@gmail.com");
 const loading = ref(false);
@@ -29,25 +30,13 @@ const submit = async () => {
   error.value = "";
 
   try {
-    const res = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.value }),
+    const res = await api.post("/api/auth/forgot-password", {
+      email: email.value,
     });
 
-    const text = await res.text(); // ✅
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("Réponse invalide : " + text); // ✅ message utile
-    }
-
-    if (!res.ok) throw new Error(data.message || "Erreur serveur");
-    message.value = data.message;
+    message.value = res.data.message;
   } catch (err) {
-    error.value = err.message;
+    error.value = err.response?.data?.message || "Erreur lors de l'envoi.";
   } finally {
     loading.value = false;
   }

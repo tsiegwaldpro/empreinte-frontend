@@ -27,7 +27,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import axios from "axios";
+import api from "@/api"; // ✅ on utilise l'instance centralisée
 
 const user = ref({});
 const initials = ref("");
@@ -36,7 +36,7 @@ onMounted(async () => {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
-  const resUser = await axios.get("http://localhost:3000/api/auth/me", {
+  const resUser = await api.get("/api/auth/me", {
     headers,
   });
   user.value = resUser.data;

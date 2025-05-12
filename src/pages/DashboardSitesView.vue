@@ -86,8 +86,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
+import api from "@/api"; // ✅ instance centralisée
 
 const sites = ref([]);
 const totalAudits = ref(0);
@@ -118,8 +118,8 @@ const handleAudit = async () => {
       formattedUrl = "https://" + formattedUrl;
     }
 
-    const res = await axios.post(
-      "http://localhost:3000/api/audit",
+    const res = await api.post(
+      "/api/audit",
       { url: formattedUrl },
       {
         headers: {
@@ -148,16 +148,12 @@ onMounted(async () => {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    const resGrouped = await axios.get("http://localhost:3000/api/grouped", {
-      headers,
-    });
+    const resGrouped = await api.get("/api/grouped", { headers });
     sites.value = resGrouped.data;
     totalSites.value = sites.value.length;
     totalAudits.value = sites.value.reduce((acc, s) => acc + s.count, 0);
 
-    const resAll = await axios.get("http://localhost:3000/api/history", {
-      headers,
-    });
+    const resAll = await api.get("/api/history", { headers });
     const audits = resAll.data;
     if (audits.length > 0) {
       const latest = new Date(audits[0].createdAt);

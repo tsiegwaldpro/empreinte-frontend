@@ -56,7 +56,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import api from "@/api"; // ✅ import centralisé
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -72,7 +72,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const res = await axios.post("http://localhost:3000/api/auth/login", {
+    const res = await api.post("/api/auth/login", {
       email: email.value,
       password: password.value,
     });

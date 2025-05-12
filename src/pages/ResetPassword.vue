@@ -18,6 +18,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import api from "@/api"; // ✅ on utilise l’instance axios centralisée
 
 const route = useRoute();
 const router = useRouter();
@@ -33,23 +34,20 @@ const submit = async () => {
   error.value = "";
 
   try {
-    const res = await fetch(`/api/auth/reset-password/${route.params.token}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ newPassword: password.value }),
-    });
+    const res = await api.post(
+      `/api/auth/reset-password/${route.params.token}`,
+      {
+        newPassword: password.value,
+      }
+    );
 
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "Erreur serveur");
-
-    message.value = data.message;
+    message.value = res.data.message;
 
     setTimeout(() => {
       router.push("/login");
     }, 2000);
   } catch (err) {
-    error.value = err.message;
+    error.value = err.response?.data?.message || "Erreur serveur";
   } finally {
     loading.value = false;
   }
