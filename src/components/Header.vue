@@ -27,6 +27,9 @@
         <v-btn v-else @click="logout" variant="text" class="text-white">
           Déconnexion
         </v-btn>
+        <v-btn v-if="isAuthenticated" to="/profile" icon class="text-white">
+          <v-icon>mdi-account-circle</v-icon>
+        </v-btn>
       </div>
     </v-container>
   </v-app-bar>

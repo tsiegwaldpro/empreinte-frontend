@@ -13,6 +13,7 @@ import NotFound from "@/pages/NotFound.vue";
 import Login from "@/pages/Login.vue";
 import Register from "@/pages/Register.vue";
 import Confirm from "@/pages/Confirm.vue";
+import Profile from "@/pages/Profile.vue";
 
 const routes = [
   {
@@ -23,6 +24,7 @@ const routes = [
       { path: "login", name: "Login", component: Login },
       { path: "register", name: "Register", component: Register },
       { path: "confirm/:token", name: "Confirm", component: Confirm },
+      { path: "profile", name: "Profile", component: Profile },
     ],
   },
   {
