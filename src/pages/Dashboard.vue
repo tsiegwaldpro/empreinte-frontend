@@ -63,7 +63,7 @@
     <v-row dense v-if="audit">
       <!-- Zone recommandations -->
       <v-col cols="12" md="9">
-        <CategorySummary :recommendations="allRecs" :doneRecos="doneRecos" />
+        <CategorySummary :recommendations="allRecs" />
 
         <RecommendationGroup
           v-for="(recs, group) in groupedRecommandations"
@@ -72,6 +72,7 @@
           :group="group"
           :recs="recs"
           :selectedImpact="selectedImpact"
+          @recoToggled="updateCounts"
         />
       </v-col>
 
@@ -104,6 +105,9 @@ import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
 import CategorySummary from "@/components/dashboard/CategorySummary.vue";
 import AuditHistory from "@/components/dashboard/AuditHistory.vue";
 
+import { useRecoStorage } from "@/composables/useRecoStorage";
+const { getDoneIds } = useRecoStorage();
+
 const route = useRoute();
 const site = computed(() => route.query.site || "default");
 
@@ -113,12 +117,9 @@ const selectedGroup = ref(null);
 const selectedImpact = ref(null);
 const isReloading = ref(false);
 const referenceScores = ref(null);
-
-const doneRecos = ref(new Set());
 const allRecs = ref([]);
 
 watch(audit, (val) => {
-  loadDoneRecos();
   if (val?.recommandations && Array.isArray(val.recommandations)) {
     allRecs.value = val.recommandations;
   } else {
@@ -150,12 +151,6 @@ const formatDate = (iso) => {
     hour: "2-digit",
     minute: "2-digit",
   });
-};
-
-const loadDoneRecos = () => {
-  const raw = localStorage.getItem("doneRecos");
-  const data = raw ? JSON.parse(raw) : {};
-  doneRecos.value = new Set(data[site.value] || []);
 };
 
 const groupedRecommandations = computed(() => {
@@ -205,7 +200,8 @@ const groupNames = computed(() => Object.keys(groupedRecommandations.value));
 const groupCounts = computed(() => {
   const counts = {};
   for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const active = recs.filter((r) => !doneRecos.value.has(r.id));
+    const doneIds = getDoneIds(group);
+    const active = recs.filter((r) => !doneIds.has(r.id));
     if (active.length > 0) counts[group] = active.length;
   }
   return counts;
@@ -213,9 +209,10 @@ const groupCounts = computed(() => {
 
 const impactCounts = computed(() => {
   const counts = { "💥": 0, "⚠️": 0, "🟢": 0 };
-  for (const group of Object.values(groupedRecommandations.value)) {
-    for (const rec of group) {
-      if (!doneRecos.value.has(rec.id) && rec.impactLevel in counts) {
+  for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
+    const doneIds = getDoneIds(group);
+    for (const rec of recs) {
+      if (!doneIds.has(rec.id) && rec.impactLevel in counts) {
         counts[rec.impactLevel] += 1;
       }
     }
@@ -295,7 +292,7 @@ onMounted(() => {
   fetchAuditData();
 });
 
-watch(site, (newVal, oldVal) => {
+watch(site, () => {
   fetchAuditData();
 });
 </script>

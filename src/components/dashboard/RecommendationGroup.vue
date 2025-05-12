@@ -11,13 +11,12 @@
             v-for="(r, i) in filteredRecs"
             :key="i"
             class="reco-item"
-            :class="{ 'reco-done': isRecoDone(r.id) }"
+            :class="{ 'reco-done': isRecoChecked(r.id) }"
           >
-            <!-- ✅ Mode compact -->
-            <template v-if="isRecoDone(r.id)">
+            <template v-if="isRecoChecked(r.id)">
               <div class="d-flex align-center">
                 <v-checkbox
-                  :model-value="isRecoDone(r.id)"
+                  :model-value="isRecoChecked(r.id)"
                   @change="toggleRecoDone(r.id)"
                   hide-details
                   density="compact"
@@ -29,11 +28,10 @@
               </div>
             </template>
 
-            <!-- 📝 Mode détaillé -->
             <template v-else>
               <div class="d-flex align-center mb-1">
                 <v-checkbox
-                  :model-value="isRecoDone(r.id)"
+                  :model-value="isRecoChecked(r.id)"
                   @change="toggleRecoDone(r.id)"
                   hide-details
                   density="compact"
@@ -101,6 +99,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from "vue";
+import { useRecoStorage } from "@/composables/useRecoStorage";
 
 const props = defineProps({
   group: String,
@@ -108,13 +107,14 @@ const props = defineProps({
   selectedImpact: String,
 });
 
-const openPanel = ref([0]);
+const { isRecoDone, toggleReco, getDoneIds } = useRecoStorage();
 
+// ⚙️ Pour le panneau ouvert ou fermé
+const openPanel = ref([0]);
 const site =
   new URLSearchParams(window.location.search).get("site") || "default";
 const localKey = `group-open-${site}-${props.group}`;
 
-// Persist état ouvert
 onMounted(() => {
   if (localStorage.getItem(localKey) === "false") openPanel.value = [];
 });
@@ -123,28 +123,11 @@ watch(openPanel, (val) => {
   localStorage.setItem(localKey, val.length ? "true" : "false");
 });
 
-// Gestion des reco faites
-const doneRecos = ref([]);
-const loadDoneRecos = () => {
-  const raw = localStorage.getItem("doneRecos");
-  const data = raw ? JSON.parse(raw) : {};
-  doneRecos.value = data[site] || [];
-};
-loadDoneRecos();
+// ✅ Utilitaires locaux liés à la centralisation
+const isRecoChecked = (id) => isRecoDone(props.group, id);
+const toggleRecoDone = (id) => toggleReco(props.group, id);
 
-const isRecoDone = (id) => doneRecos.value.includes(id);
-
-const toggleRecoDone = (id) => {
-  const newSet = new Set(doneRecos.value);
-  newSet.has(id) ? newSet.delete(id) : newSet.add(id);
-  doneRecos.value = Array.from(newSet);
-
-  const raw = localStorage.getItem("doneRecos");
-  const data = raw ? JSON.parse(raw) : {};
-  data[site] = doneRecos.value;
-  localStorage.setItem("doneRecos", JSON.stringify(data));
-};
-
+// 💡 Calculs
 const filteredRecs = computed(() =>
   !props.selectedImpact
     ? props.recs
@@ -152,7 +135,7 @@ const filteredRecs = computed(() =>
 );
 
 const total = computed(() => props.recs.length);
-const done = computed(() => props.recs.filter((r) => isRecoDone(r.id)).length);
+const done = computed(() => getDoneIds(props.group).size);
 </script>
 
 <style scoped>

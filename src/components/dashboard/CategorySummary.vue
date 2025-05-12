@@ -21,11 +21,13 @@
 
 <script setup>
 import { computed } from "vue";
+import { useRecoStorage } from "@/composables/useRecoStorage";
 
 const props = defineProps({
   recommendations: Array,
-  doneRecos: Object,
 });
+
+const { getDoneIds } = useRecoStorage();
 
 const colorMap = {
   "Best Practices": "#C1F0DC",
@@ -41,7 +43,8 @@ const categories = computed(() => {
 
   return groups.map((key) => {
     const catRecs = props.recommendations.filter((r) => r.group === key);
-    const done = catRecs.filter((r) => props.doneRecos?.has(r.id)).length;
+    const doneIds = getDoneIds(key);
+    const done = catRecs.filter((r) => doneIds.has(r.id)).length;
 
     return {
       key,

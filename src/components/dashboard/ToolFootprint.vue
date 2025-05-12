@@ -8,20 +8,20 @@
       <v-row dense>
         <v-col cols="12" sm="6">
           <v-card class="pa-3 text-white text-center" elevation="1">
-            <div class="text-subtitle-2 font-weight-medium">⚡ Électricité</div>
-            <div class="text-h6 font-mono mt-2">0.0003 kWh</div>
+            <div class="text-subtitle-2 font-weight-medium">⚡ Énergie</div>
+            <div class="text-h6 font-mono mt-2">0.3 Wh</div>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6">
           <v-card class="pa-3 text-white text-center" elevation="1">
-            <div class="text-subtitle-2 font-weight-medium">🌍 Carbone</div>
-            <div class="text-h6 font-mono mt-2">0.012 gCO₂e</div>
+            <div class="text-subtitle-2 font-weight-medium">💧 Eau</div>
+            <div class="text-h6 font-mono mt-2">0.005 cl</div>
           </v-card>
         </v-col>
         <v-col cols="12" sm="12">
           <v-card class="pa-3 text-white text-center" elevation="1">
-            <div class="text-subtitle-2 font-weight-medium">💧 Eau</div>
-            <div class="text-h6 font-mono mt-2">0.005 cl</div>
+            <div class="text-subtitle-2 font-weight-medium">🌍 Carbone</div>
+            <div class="text-h6 font-mono mt-2">0.012 gCO2e</div>
           </v-card>
         </v-col>
       </v-row>
