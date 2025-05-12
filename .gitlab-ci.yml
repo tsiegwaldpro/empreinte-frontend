@@ -1,3 +1,17 @@
+stages:
+  - build
+  - deploy
+
+build:
+  image: node:18
+  stage: build
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - dist
+
 deploy:
   image: alpine
   stage: deploy
@@ -5,4 +19,4 @@ deploy:
     - build
   script:
     - apk add --no-cache lftp
-    - lftp -c "set ftp:ssl-allow no; open -u deploy@empreinte-app.fr,VWtrme7Y6VXHNn ftp.dalo8522.odns.fr; mirror -R --delete dist/ /empreinte-app.fr/"
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USER,$FTP_PASS ftp.dalo8522.odns.fr; mirror -R --delete dist/ /empreinte-app.fr/"
