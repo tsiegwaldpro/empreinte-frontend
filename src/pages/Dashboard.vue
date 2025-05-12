@@ -1,6 +1,32 @@
 <template>
   <v-container fluid class="dashboard-view py-6">
     <!-- Ligne du haut : Résumés -->
+    <!-- Bloc d’en-tête recommandations -->
+    <v-col cols="12" md="12" class="mb-6">
+      <v-card elevation="2" class="pa-4">
+        <v-card-title class="text-h6 font-weight-bold">
+          🛠 Recommandations
+        </v-card-title>
+
+        <v-card-subtitle
+          class="text-body-2 text-grey-lighten-1"
+          v-if="audit && audit.url"
+        >
+          pour le site :
+          <a :href="audit.url" target="_blank" rel="noopener noreferrer">
+            {{ audit.url }}
+          </a>
+        </v-card-subtitle>
+
+        <v-card-text
+          class="text-caption text-grey-lighten-1"
+          v-if="audit && audit.createdAt"
+        >
+          Audit réalisé le {{ formatDate(audit.createdAt) }}
+        </v-card-text>
+      </v-card>
+    </v-col>
+
     <v-row dense class="mb-6" align="stretch" v-if="audit">
       <v-col cols="12" md="3" class="d-flex">
         <ScoreList
@@ -37,19 +63,6 @@
     <v-row dense v-if="audit">
       <!-- Zone recommandations -->
       <v-col cols="12" md="9">
-        <div class="audit-header mb-6">
-          <h1>🛠 Recommandations</h1>
-          <p class="text-subtitle-2 text-grey-lighten-1" v-if="audit.url">
-            pour le site :
-            <a :href="audit.url" target="_blank" rel="noopener noreferrer">
-              {{ audit.url }}
-            </a>
-          </p>
-          <p class="text-caption text-grey" v-if="audit.createdAt">
-            Audit réalisé le {{ formatDate(audit.createdAt) }}
-          </p>
-        </div>
-
         <CategorySummary :recommendations="allRecs" :doneRecos="doneRecos" />
 
         <RecommendationGroup
@@ -126,8 +139,10 @@ const allRecs = ref([]);
 watch(audit, (val) => {
   console.log("Nouvel audit chargé :", val);
   loadDoneRecos();
-  if (val?.recommandations) {
+  if (val?.recommandations && Array.isArray(val.recommandations)) {
     allRecs.value = val.recommandations;
+  } else {
+    allRecs.value = [];
   }
 });
 
@@ -159,7 +174,7 @@ const isRecoDone = (id) => {
 };
 
 const groupedRecommandations = computed(() => {
-  if (!audit.value) return {};
+  if (!audit.value?.recommandations) return {};
   const grouped = {};
   for (const rec of audit.value.recommandations) {
     if (!grouped[rec.group]) grouped[rec.group] = [];
@@ -208,7 +223,7 @@ const impactCounts = computed(() => {
   const counts = { "💥": 0, "⚠️": 0, "🟢": 0 };
   for (const group of Object.values(groupedRecommandations.value)) {
     for (const rec of group) {
-      if (!isRecoDone(rec.id)) {
+      if (!isRecoDone(rec.id) && rec.impactLevel in counts) {
         counts[rec.impactLevel] += 1;
       }
     }

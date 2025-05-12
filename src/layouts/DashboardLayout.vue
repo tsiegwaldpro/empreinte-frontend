@@ -1,35 +1,30 @@
 <template>
-  <v-app>
-    <Header />
+  <div class="d-flex">
+    <!-- Barre latérale -->
     <v-navigation-drawer app permanent>
-      <v-list dense nav>
-        <v-list-item-title class="text-h6 text-center my-4"
-          >🌿 Empreinte</v-list-item-title
+      <v-list nav dense>
+        <v-list-item
+          v-for="item in menu"
+          :key="item.name"
+          :to="item.to"
+          router
+          active-class="bg-primary text-white"
         >
-        <v-divider class="mb-2" />
-        <v-list-item link to="/dashboard">
-          <v-list-item-title>Tableau de bord</v-list-item-title>
-        </v-list-item>
-        <v-list-item link to="/audit">
-          <v-list-item-title>Lancer un audit</v-list-item-title>
-        </v-list-item>
-        <v-list-item link to="/historique">
-          <v-list-item-title>Historique</v-list-item-title>
+          <v-list-item-title>{{ item.label }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
-    <v-main>
-      <v-container fluid>
-        <slot />
-      </v-container>
+    <!-- Contenu des sous-vues -->
+    <v-main class="pa-6">
+      <router-view :key="$route.fullPath" />
     </v-main>
-
-    <Footer />
-  </v-app>
+  </div>
 </template>
 
 <script setup>
-import Header from "@/components/Header.vue";
-import Footer from "@/components/Footer.vue";
+const menu = [
+  { name: "Dashboard", label: "📊 Dashboard", to: "/dashboard" },
+  { name: "History", label: "🕘 Historique", to: "/dashboard/history" },
+];
 </script>

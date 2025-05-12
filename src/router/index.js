@@ -7,7 +7,8 @@ import DashboardLayout from "@/layouts/DashboardLayout.vue";
 // Pages
 import Home from "@/pages/Home.vue";
 import Audit from "@/pages/Audit.vue";
-import Dashboard from "@/pages/Dashboard.vue";
+import DashboardSitesView from "@/pages/DashboardSitesView.vue";
+import DashboardHistoryView from "@/pages/DashboardHistoryView.vue";
 import NotFound from "@/pages/NotFound.vue";
 import Login from "@/pages/Login.vue";
 import Register from "@/pages/Register.vue";
@@ -18,42 +19,41 @@ const routes = [
     path: "/",
     component: DefaultLayout,
     children: [
-      {
-        path: "",
-        name: "Home",
-        component: Home,
-      },
-      {
-        path: "/login",
-        name: "Login",
-        component: Login,
-      },
-      {
-        path: "register",
-        name: "Register",
-        component: Register,
-      },
-      {
-        path: "/confirm/:token",
-        name: "Confirm",
-        component: Confirm,
-      },
-      {
-        path: "/dashboard",
-        component: DashboardLayout,
-        name: "Dashboard",
-        component: Dashboard,
-      },
+      { path: "", name: "Home", component: Home },
+      { path: "login", name: "Login", component: Login },
+      { path: "register", name: "Register", component: Register },
+      { path: "confirm/:token", name: "Confirm", component: Confirm },
     ],
   },
   {
     path: "/audit",
     component: DashboardLayout,
+    children: [{ path: "", name: "Audit", component: Audit }],
+  },
+  {
+    path: "/dashboard",
+    component: DefaultLayout,
     children: [
       {
         path: "",
-        name: "Audit",
-        component: Audit,
+        component: DashboardLayout,
+        children: [
+          {
+            path: "",
+            name: "Dashboard",
+            component: DashboardSitesView,
+          },
+          {
+            path: "history",
+            name: "History",
+            component: DashboardHistoryView,
+          },
+          {
+            path: "audit", // 👈 ici on affiche un audit spécifique
+            name: "DashboardAudit",
+            component: () => import("@/pages/Dashboard.vue"),
+          },
+        ],
       },
     ],
   },
