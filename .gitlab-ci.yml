@@ -1,6 +1,7 @@
 stages:
   - build
   - deploy
+  - notify
 
 build:
   image: node:18
@@ -11,6 +12,8 @@ build:
   artifacts:
     paths:
       - dist
+  only:
+    - prod
 
 deploy:
   image: alpine
@@ -19,5 +22,61 @@ deploy:
     - build
   script:
     - apk add --no-cache lftp
-    - echo "Connexion FTP en cours..."
+    - echo "🚀 Déploiement du frontend (dist/) via FTP"
     - lftp -c "set ftp:ssl-allow no; open -u $FTP_USER,$FTP_PASS ftp.dalo8522.odns.fr; mirror -R --delete dist/ ./"
+  only:
+    - prod
+
+notify:
+  image: curlimages/curl:latest
+  stage: notify
+  script:
+    - echo "📣 Envoi d’un embed Discord avec infos pipeline (succès)"
+    - |
+      curl -H "Content-Type: application/json" \
+           -X POST \
+           -d "{
+             \"embeds\": [{
+               \"title\": \"✅ Frontend déployé avec succès — Empreinte (branche prod)\",
+               \"description\": \"Le dossier **dist/** a été mis en ligne avec succès 🎉\",
+               \"color\": 65280,
+               \"fields\": [
+                 { \"name\": \"Auteur du commit\", \"value\": \"$GITLAB_USER_NAME\", \"inline\": true },
+                 { \"name\": \"Pipeline\", \"value\": \"[Voir dans GitLab]($CI_PIPELINE_URL)\", \"inline\": true }
+               ],
+               \"footer\": {
+                 \"text\": \"Déployé le $(date +'%d/%m/%Y à %Hh%M')\"
+               }
+             }]
+           }" \
+           https://discord.com/api/webhooks/1371733095438356490/agrJaBFR_P3jV_RUvd7KW86mKMkuyWwZPzL_mOAN7oSVdYcWz7gSU4AiwTWMbZ0kBPEE
+  only:
+    - prod
+  when: on_success
+
+notify_failure:
+  image: curlimages/curl:latest
+  stage: notify
+  script:
+    - echo "❌ Envoi d’un embed Discord — Échec du déploiement frontend"
+    - |
+      curl -H "Content-Type: application/json" \
+           -X POST \
+           -d "{
+             \"embeds\": [{
+               \"title\": \"🚨 Échec du déploiement frontend — Empreinte (branche prod)\",
+               \"description\": \"Une erreur est survenue lors du build ou du déploiement du frontend.\",
+               \"color\": 16711680,
+               \"fields\": [
+                 { \"name\": \"Auteur du commit\", \"value\": \"$GITLAB_USER_NAME\", \"inline\": true },
+                 { \"name\": \"Pipeline\", \"value\": \"[Voir le pipeline]($CI_PIPELINE_URL)\", \"inline\": true }
+               ],
+               \"footer\": {
+                 \"text\": \"Échec détecté le $(date +'%d/%m/%Y à %Hh%M')\"
+               }
+             }]
+           }" \
+           https://discord.com/api/webhooks/1371733095438356490/agrJaBFR_P3jV_RUvd7KW86mKMkuyWwZPzL_mOAN7oSVdYcWz7gSU4AiwTWMbZ0kBPEE
+  only:
+    - prod
+  when: on_failure
