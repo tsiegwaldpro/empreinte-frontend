@@ -121,7 +121,7 @@ const handleRegister = async () => {
       email: email.value,
       password: password.value,
     });
-
+    console.log("Réponse inscription :", res.data);
     message.value =
       "Inscription réussie. Un mail de confirmation vous a été envoyé.";
     localStorage.setItem("showConfirmMessage", "true");
@@ -130,6 +130,8 @@ const handleRegister = async () => {
       router.push("/login");
     }, 1500);
   } catch (err) {
+    console.error("Erreur API :", err);
+    console.error("Réponse complète :", err.response);
     error.value = err.response?.data?.message || "Erreur lors de l'inscription";
   } finally {
     loading.value = false;
