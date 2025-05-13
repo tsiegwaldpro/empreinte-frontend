@@ -115,7 +115,7 @@ const handleRegister = async () => {
   }
 
   try {
-    await api.post("/api/auth/register", {
+    await api.post("/auth/register", {
       firstName: firstName.value,
       lastName: lastName.value,
       email: email.value,

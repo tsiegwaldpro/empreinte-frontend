@@ -36,7 +36,7 @@ onMounted(async () => {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
-  const resUser = await api.get("/api/auth/me", {
+  const resUser = await api.get("/auth/me", {
     headers,
   });
   user.value = resUser.data;

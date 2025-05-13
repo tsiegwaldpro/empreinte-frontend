@@ -28,7 +28,7 @@ const loading = ref(true);
 onMounted(async () => {
   try {
     const token = route.params.token;
-    await api.get(`/api/auth/confirm/${token}`); // ✅ plus d'URL en dur
+    await api.get(`/auth/confirm/${token}`); // ✅ plus d'URL en dur
     message.value =
       "✅ Ton compte est confirmé ! Tu peux maintenant te connecter.";
   } catch (err) {

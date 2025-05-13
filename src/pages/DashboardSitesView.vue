@@ -119,7 +119,7 @@ const handleAudit = async () => {
     }
 
     const res = await api.post(
-      "/api/audit",
+      "/audit",
       { url: formattedUrl },
       {
         headers: {
@@ -148,12 +148,12 @@ onMounted(async () => {
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    const resGrouped = await api.get("/api/grouped", { headers });
+    const resGrouped = await api.get("/grouped", { headers });
     sites.value = resGrouped.data;
     totalSites.value = sites.value.length;
     totalAudits.value = sites.value.reduce((acc, s) => acc + s.count, 0);
 
-    const resAll = await api.get("/api/history", { headers });
+    const resAll = await api.get("/history", { headers });
     const audits = resAll.data;
     if (audits.length > 0) {
       const latest = new Date(audits[0].createdAt);

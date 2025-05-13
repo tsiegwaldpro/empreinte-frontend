@@ -170,7 +170,7 @@ const relaunchAudit = async () => {
   try {
     const token = localStorage.getItem("token");
     const res = await api.post(
-      "/api/audit",
+      "/audit",
       { url: audit.value.url },
       {
         headers: {
@@ -237,7 +237,7 @@ const fetchReferenceAudit = async () => {
     const siteParam = encodeURIComponent(
       site.value.toLowerCase().replace(/\/+\$/, "")
     );
-    const res = await api.get(`/api/audit/reference?site=${siteParam}`, {
+    const res = await api.get(`/audit/reference?site=${siteParam}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -259,7 +259,7 @@ const fetchAuditData = async () => {
       site.value.replace(/\/+\$/, "").toLowerCase()
     );
 
-    const res = await api.get(`/api/audit/history?site=${siteParam}`, {
+    const res = await api.get(`/audit/history?site=${siteParam}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

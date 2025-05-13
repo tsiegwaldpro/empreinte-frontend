@@ -34,12 +34,9 @@ const submit = async () => {
   error.value = "";
 
   try {
-    const res = await api.post(
-      `/api/auth/reset-password/${route.params.token}`,
-      {
-        newPassword: password.value,
-      }
-    );
+    const res = await api.post(`/auth/reset-password/${route.params.token}`, {
+      newPassword: password.value,
+    });
 
     message.value = res.data.message;
 
