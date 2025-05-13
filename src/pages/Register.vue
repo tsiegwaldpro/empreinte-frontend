@@ -92,11 +92,20 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "@/api"; // ✅ instance centralisée
 
-const firstName = ref("Thomas");
-const lastName = ref("Siegwald");
-const email = ref("siegwald.thomas@gmail.com");
-const password = ref("Yolo2015+");
-const confirmPassword = ref("Yolo2015+");
+const firstName = ref("");
+const lastName = ref("");
+const email = ref("");
+const password = ref("");
+const confirmPassword = ref("");
+
+// Pré-remplissage automatique en dev uniquement
+if (import.meta.env.MODE === "development") {
+  firstName.value = "Thomas";
+  lastName.value = "Siegwald";
+  email.value = "siegwald.thomas@gmail.com";
+  password.value = "Yolo2015+";
+  confirmPassword.value = "Yolo2015+";
+}
 
 const error = ref("");
 const message = ref("");
@@ -134,6 +143,8 @@ const handleRegister = async () => {
   } catch (err) {
     console.error("Erreur API :", err);
     console.error("Réponse complète :", err.response);
+    console.error("Message d'erreur :", err.response?.data?.message);
+
     error.value = err.response?.data?.message || "Erreur lors de l'inscription";
   } finally {
     loading.value = false;

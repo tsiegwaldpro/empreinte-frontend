@@ -61,8 +61,8 @@ import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 
-const email = ref("siegwald.thomas@gmail.com");
-const password = ref("Yolo2015+");
+const email = ref();
+const password = ref();
 const loading = ref(false);
 const error = ref(null);
 const router = useRouter();
