@@ -115,13 +115,15 @@ const handleRegister = async () => {
   }
 
   try {
-    await api.post("/auth/register", {
+    const res = await api.post("/auth/register", {
       firstName: firstName.value,
       lastName: lastName.value,
       email: email.value,
       password: password.value,
     });
-    console.log("Réponse inscription :", res.data);
+
+    console.log("✅ Réponse inscription :", res.data);
+
     message.value =
       "Inscription réussie. Un mail de confirmation vous a été envoyé.";
     localStorage.setItem("showConfirmMessage", "true");
