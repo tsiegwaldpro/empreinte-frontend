@@ -19,6 +19,7 @@ import ResetPassword from "@/pages/ResetPassword.vue";
 import MentionsLegales from "../pages/MentionsLegales.vue";
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite.vue";
 import CGU from "../pages/CGU.vue";
+import AdminDashboard from "../pages/AdminDashboard.vue";
 
 const routes = [
   {
@@ -55,6 +56,11 @@ const routes = [
         path: "reset-password/:token",
         name: "ResetPassword",
         component: ResetPassword,
+      },
+      {
+        path: "/admin/",
+        name: "AdminDashboard",
+        component: AdminDashboard,
       },
     ],
   },

@@ -78,13 +78,19 @@ const handleLogin = async () => {
     });
 
     const token = res.data.token;
+    const user = res.data.user;
 
-    // On utilise maintenant Pinia ici 👇
-    auth.login(token);
+    auth.login(token); // Tu peux l'étendre plus tard pour stocker aussi le user
 
     localStorage.setItem("showWelcome", "true");
+    localStorage.setItem("user", JSON.stringify(user)); // pour le rôle plus tard
 
-    router.push("/");
+    // ✅ Redirection selon le rôle
+    if (user.role === "admin") {
+      router.push("/admin/dashboard");
+    } else {
+      router.push("/");
+    }
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || "Erreur lors de la connexion";
