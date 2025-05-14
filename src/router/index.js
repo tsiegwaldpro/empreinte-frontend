@@ -18,6 +18,7 @@ import ForgotPassword from "@/pages/ForgotPassword.vue";
 import ResetPassword from "@/pages/ResetPassword.vue";
 import MentionsLegales from "../pages/MentionsLegales.vue";
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite.vue";
+import CGU from "../pages/CGU.vue";
 
 const routes = [
   {
@@ -38,6 +39,12 @@ const routes = [
         path: "/politique-confidentialite",
         name: "PolitiqueConfidentialite",
         component: PolitiqueConfidentialite,
+      },
+
+      {
+        path: "/cgu",
+        name: "CGU",
+        component: CGU,
       },
       {
         path: "forgot-password",

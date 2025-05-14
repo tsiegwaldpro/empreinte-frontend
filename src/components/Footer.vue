@@ -20,6 +20,12 @@
       >
         Politique de confidentialité
       </RouterLink>
+      <RouterLink
+        to="/cgu"
+        class="text-grey-lighten-1 text-caption text-decoration-underline"
+      >
+        CGU
+      </RouterLink>
     </v-container>
   </v-footer>
 </template>
