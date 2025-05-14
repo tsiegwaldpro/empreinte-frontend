@@ -14,15 +14,15 @@
         <div class="d-flex flex-wrap gap-2">
           <v-chip
             v-for="group in groups"
-            :key="group"
-            :color="selectedGroup === group ? 'primary' : 'grey-darken-3'"
+            :key="group.key"
+            :color="selectedGroup === group.key ? 'primary' : 'grey-darken-3'"
             class="text-white"
             size="small"
             variant="flat"
             filter
-            @click="$emit('update:selectedGroup', group)"
+            @click="$emit('update:selectedGroup', group.key)"
           >
-            {{ group }} ({{ groupCounts[group] || 0 }})
+            {{ group.label }} ({{ groupCounts[group.key] || 0 }})
           </v-chip>
         </div>
       </div>
@@ -71,10 +71,10 @@
 
 <script setup>
 defineProps({
-  groups: Array,
-  groupCounts: Object,
-  impactCounts: Object,
-  levels: Array,
+  groups: Array, // Array of { key, label }
+  groupCounts: Object, // { key: number }
+  impactCounts: Object, // { icon: number }
+  levels: Array, // [{ icon, label }]
   selectedGroup: String,
   selectedImpact: String,
 });

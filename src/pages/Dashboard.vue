@@ -1,25 +1,22 @@
 <template>
   <v-container fluid class="dashboard-view py-6">
-    <!-- Ligne du haut : Résumés -->
     <v-col cols="12" md="12" class="mb-6">
       <v-card elevation="2" class="pa-4">
         <v-card-title class="text-h6 font-weight-bold">
           🛠 Recommandations
         </v-card-title>
-
         <v-card-subtitle
           class="text-body-2 text-grey-lighten-1"
-          v-if="audit && audit.url"
+          v-if="audit?.url"
         >
           pour le site :
           <a :href="audit.url" target="_blank" rel="noopener noreferrer">
             {{ audit.url }}
           </a>
         </v-card-subtitle>
-
         <v-card-text
           class="text-caption text-grey-lighten-1"
-          v-if="audit && audit.createdAt"
+          v-if="audit?.createdAt"
         >
           Audit réalisé le {{ formatDate(audit.createdAt) }}
         </v-card-text>
@@ -36,11 +33,9 @@
           :referenceScores="referenceScores"
         />
       </v-col>
-
       <v-col cols="12" md="3" class="d-flex">
         <FootPrint :empreinte="audit.empreinte" />
       </v-col>
-
       <v-col cols="12" md="3" class="d-flex">
         <FiltersAndCriticity
           :groups="groupNames"
@@ -53,30 +48,23 @@
           @update:selectedImpact="selectedImpact = $event"
         />
       </v-col>
-
       <v-col cols="12" md="3" class="d-flex">
         <ToolFootprint />
       </v-col>
     </v-row>
 
-    <!-- Ligne du bas : recommandations et historique -->
     <v-row dense v-if="audit">
-      <!-- Zone recommandations -->
       <v-col cols="12" md="9">
         <CategorySummary :recommendations="allRecs" />
-
         <RecommendationGroup
-          v-for="(recs, group) in groupedRecommandations"
-          :key="group"
-          v-show="!selectedGroup || selectedGroup === group"
-          :group="group"
-          :recs="recs"
+          v-for="{ key, label } in groupNames"
+          :key="key"
+          v-show="!selectedGroup || selectedGroup === key"
+          :group="label"
+          :recs="groupedRecommandations[key]"
           :selectedImpact="selectedImpact"
-          @recoToggled="updateCounts"
         />
       </v-col>
-
-      <!-- Zone outils -->
       <v-col cols="12" md="3">
         <AuditHistory
           :referenceAudit="referenceAudit"
@@ -93,9 +81,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, watchEffect } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
-import api from "@/api"; // ✅ centralisé
+import api from "@/api";
 
 import ScoreList from "@/components/dashboard/ScoreList.vue";
 import FootPrint from "@/components/dashboard/FootPrint.vue";
@@ -119,24 +107,32 @@ const isReloading = ref(false);
 const referenceScores = ref(null);
 const allRecs = ref([]);
 
+const groupLabels = {
+  performance: "Performances",
+  "best-practices": "Bonnes pratiques",
+  accessibility: "Accessibilité",
+  seo: "SEO",
+  general: "Autres",
+};
+
+const getGroupLabel = (key) =>
+  groupLabels[key?.toLowerCase().replace(/\s+/g, "-")] || key;
+
 watch(audit, (val) => {
-  if (val?.recommandations && Array.isArray(val.recommandations)) {
-    allRecs.value = val.recommandations;
-  } else {
-    allRecs.value = [];
-  }
+  allRecs.value = Array.isArray(val?.recommandations)
+    ? val.recommandations
+    : [];
 });
 
-const referenceAudit = computed(() => {
-  return history.value.length ? history.value.at(-1) : null;
-});
-const pastAudits = computed(() => {
-  if (!referenceAudit.value) return [];
-  return history.value.filter((a) => a._id !== referenceAudit.value._id);
-});
-watchEffect(() => {
-  console.log("🔍 history =", history.value);
-});
+const referenceAudit = computed(() =>
+  history.value.length ? history.value.at(-1) : null
+);
+
+const pastAudits = computed(() =>
+  referenceAudit.value
+    ? history.value.filter((a) => a._id !== referenceAudit.value._id)
+    : []
+);
 
 const impactLevels = [
   { icon: "💥", label: "Critique" },
@@ -156,53 +152,26 @@ const formatDate = (iso) => {
 };
 
 const groupedRecommandations = computed(() => {
-  if (!audit.value?.recommandations) return {};
   const grouped = {};
-  for (const rec of audit.value.recommandations) {
-    if (!grouped[rec.group]) grouped[rec.group] = [];
-    grouped[rec.group].push(rec);
+  for (const rec of audit.value?.recommandations || []) {
+    const key = rec.group?.toLowerCase().replace(/\s+/g, "-") || "general";
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(rec);
   }
   return grouped;
 });
 
-const relaunchAudit = async () => {
-  if (!audit.value?.url) return;
-  isReloading.value = true;
-
-  try {
-    const token = localStorage.getItem("token");
-    const res = await api.post(
-      "/audit",
-      { url: audit.value.url },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const auditWithDate = {
-      ...res.data,
-      createdAt: new Date().toISOString(),
-    };
-
-    history.value.push(auditWithDate);
-    audit.value = auditWithDate;
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (err) {
-    console.error("Erreur lors du nouvel audit :", err);
-  } finally {
-    isReloading.value = false;
-  }
-};
-
-const groupNames = computed(() => Object.keys(groupedRecommandations.value));
+const groupNames = computed(() =>
+  Object.keys(groupedRecommandations.value).map((key) => ({
+    key,
+    label: getGroupLabel(key),
+  }))
+);
 
 const groupCounts = computed(() => {
   const counts = {};
   for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const doneIds = getDoneIds(group);
+    const doneIds = getDoneIds(group).value;
     const active = recs.filter((r) => !doneIds.has(r.id));
     if (active.length > 0) counts[group] = active.length;
   }
@@ -212,7 +181,7 @@ const groupCounts = computed(() => {
 const impactCounts = computed(() => {
   const counts = { "💥": 0, "⚠️": 0, "🟢": 0 };
   for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const doneIds = getDoneIds(group);
+    const doneIds = getDoneIds(group).value;
     for (const rec of recs) {
       if (!doneIds.has(rec.id) && rec.impactLevel in counts) {
         counts[rec.impactLevel] += 1;
@@ -222,16 +191,41 @@ const impactCounts = computed(() => {
   return counts;
 });
 
+const relaunchAudit = async () => {
+  if (!audit.value?.url) return;
+  isReloading.value = true;
+  try {
+    const token = localStorage.getItem("token");
+    const res = await api.post(
+      "/audit",
+      { url: audit.value.url },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const auditWithDate = {
+      ...res.data,
+      createdAt: new Date().toISOString(),
+    };
+    history.value.push(auditWithDate);
+    audit.value = auditWithDate;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error("Erreur lors du nouvel audit :", err);
+  } finally {
+    isReloading.value = false;
+  }
+};
+
 const loadAudit = (a) => {
   audit.value = a;
 };
 
-const filteredHistory = computed(() => {
-  if (!audit.value?.url) return [];
-  return history.value.filter(
-    (a) => a.url === audit.value.url && a._id !== audit.value._id
-  );
-});
+const filteredHistory = computed(() =>
+  audit.value?.url
+    ? history.value.filter(
+        (a) => a.url === audit.value.url && a._id !== audit.value._id
+      )
+    : []
+);
 
 const fetchReferenceAudit = async () => {
   try {
@@ -242,7 +236,6 @@ const fetchReferenceAudit = async () => {
     const res = await api.get(`/audit/reference?site=${siteParam}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
     referenceScores.value = {
       performance: res.data.performance,
       accessibility: res.data.accessibility,
@@ -260,18 +253,12 @@ const fetchAuditData = async () => {
     const siteParam = encodeURIComponent(
       site.value.replace(/\/+\$/, "").toLowerCase()
     );
-
     const res = await api.get(`/audit/history?site=${siteParam}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-
     history.value = res.data;
     audit.value = history.value.at(-1) || null;
-
     await fetchReferenceAudit();
-
     if (!audit.value) {
       const local = localStorage.getItem("lastAudit");
       if (local) {

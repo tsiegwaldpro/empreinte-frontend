@@ -29,12 +29,25 @@ const props = defineProps({
 
 const { getDoneIds } = useRecoStorage();
 
-const colorMap = {
-  "Best Practices": "#C1F0DC",
-  Performance: "#FFB3A7",
-  Accessibility: "#A7D0F2",
-  SEO: "#FFE59D",
+const groupLabels = {
+  performance: "Performances",
+  accessibility: "Accessibilité",
+  seo: "SEO",
+  "best-practices": "Bonnes pratiques",
 };
+
+const colorMap = {
+  performance: "#FFB3A7",
+  accessibility: "#A7D0F2",
+  seo: "#FFE59D",
+  "best-practices": "#C1F0DC",
+};
+
+const normalizeGroup = (key) =>
+  key?.toLowerCase().replace(/\s+/g, "-") || "general";
+
+const getLabel = (key) => groupLabels[normalizeGroup(key)] || key;
+const getColor = (key) => colorMap[normalizeGroup(key)] || "#ccc";
 
 const categories = computed(() => {
   if (!props.recommendations) return [];
@@ -42,14 +55,18 @@ const categories = computed(() => {
   const groups = [...new Set(props.recommendations.map((r) => r.group))];
 
   return groups.map((key) => {
-    const catRecs = props.recommendations.filter((r) => r.group === key);
-    const doneIds = getDoneIds(key);
-    const done = catRecs.filter((r) => doneIds.has(r.id)).length;
+    const normKey = normalizeGroup(key);
+    const catRecs = props.recommendations.filter(
+      (r) => normalizeGroup(r.group) === normKey
+    );
+    const done = catRecs.filter((r) =>
+      getDoneIds(normKey).value.has(r.id)
+    ).length;
 
     return {
-      key,
-      label: key,
-      color: colorMap[key] || "#ccc",
+      key: normKey,
+      label: getLabel(key),
+      color: getColor(key),
       done,
       total: catRecs.length,
     };
