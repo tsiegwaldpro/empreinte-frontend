@@ -1,7 +1,8 @@
 <template>
   <v-card class="pa-4 text-white" color="grey-darken-4" elevation="4">
-    <div v-if="pastAudits.length || referenceAudit">
+    <div v-if="referenceAudit || pastAudits.length">
       <h3 class="text-subtitle-1 mb-2">🕘 Audits précédents</h3>
+
       <v-btn
         class="mb-4 text-white text-uppercase font-weight-bold"
         @click="$emit('relaunch')"
@@ -16,7 +17,15 @@
       </v-btn>
 
       <!-- 📌 Audit de référence -->
-      <v-card class="mb-4 pa-3 bg-grey-darken-2 text-white" elevation="1">
+      <v-card
+        class="mb-4 pa-3 text-white"
+        :color="
+          currentAuditId === referenceAudit?._id ? 'primary' : 'grey-darken-2'
+        "
+        elevation="1"
+        @click="$emit('select', referenceAudit)"
+        style="cursor: pointer"
+      >
         <div class="d-flex justify-space-between align-center mb-2">
           <div>
             <div class="text-subtitle-2 font-weight-bold">
@@ -28,7 +37,6 @@
           </div>
           <v-icon color="grey-lighten-1">mdi-lock</v-icon>
         </div>
-
         <div class="text-caption text-grey-lighten-1 mt-1">
           Cet audit est utilisé comme point de comparaison pour mesurer vos
           améliorations. Il s’agit du tout premier test effectué sur ce site.
@@ -38,7 +46,7 @@
       <!-- 📝 Audits suivants -->
       <v-list class="bg-transparent">
         <v-list-item
-          v-for="a in pastAudits"
+          v-for="a in sortedAudits"
           :key="a._id"
           :active="a._id === currentAuditId"
           @click="$emit('select', a)"
@@ -56,7 +64,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   referenceAudit: Object,
   pastAudits: Array,
   currentAuditId: String,
@@ -66,14 +74,21 @@ defineProps({
 
 const emit = defineEmits(["select", "relaunch"]);
 
+// Tri du reste
+const sortedAudits = [...(props.pastAudits || [])].sort(
+  (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+);
+
 const formatDate = (iso) => {
   const date = new Date(iso);
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString("fr-FR", {
+    timeZone: "Europe/Paris",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
   });
 };
 </script>

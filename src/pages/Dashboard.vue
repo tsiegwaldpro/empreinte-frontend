@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api"; // ✅ centralisé
 
@@ -130,10 +130,12 @@ watch(audit, (val) => {
 const referenceAudit = computed(() => {
   return history.value.length ? history.value.at(-1) : null;
 });
-
 const pastAudits = computed(() => {
   if (!referenceAudit.value) return [];
   return history.value.filter((a) => a._id !== referenceAudit.value._id);
+});
+watchEffect(() => {
+  console.log("🔍 history =", history.value);
 });
 
 const impactLevels = [
@@ -265,7 +267,7 @@ const fetchAuditData = async () => {
       },
     });
 
-    history.value = res.data.reverse();
+    history.value = res.data;
     audit.value = history.value.at(-1) || null;
 
     await fetchReferenceAudit();
