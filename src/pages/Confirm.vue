@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height d-flex justify-center align-center">
-    <v-card class="pa-8 text-center" max-width="500" elevation="8">
+    <v-card class="pa-8 text-center" max-width="1000" elevation="8">
       <v-card-title class="text-h5 mb-4">
         {{ loading ? "Confirmation en cours..." : message }}
       </v-card-title>
