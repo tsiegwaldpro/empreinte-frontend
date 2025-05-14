@@ -17,6 +17,7 @@ import Profile from "@/pages/Profile.vue";
 import ForgotPassword from "@/pages/ForgotPassword.vue";
 import ResetPassword from "@/pages/ResetPassword.vue";
 import MentionsLegales from "../pages/MentionsLegales.vue";
+import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite.vue";
 
 const routes = [
   {
@@ -32,6 +33,11 @@ const routes = [
         path: "/mentions-legales",
         name: "MentionsLegales",
         component: MentionsLegales,
+      },
+      {
+        path: "/politique-confidentialite",
+        name: "PolitiqueConfidentialite",
+        component: PolitiqueConfidentialite,
       },
       {
         path: "forgot-password",

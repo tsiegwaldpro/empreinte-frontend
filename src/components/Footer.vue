@@ -14,6 +14,12 @@
       >
         Mentions légales
       </RouterLink>
+      <RouterLink
+        to="/politique-confidentialite"
+        class="text-grey-lighten-1 text-caption text-decoration-underline"
+      >
+        Politique de confidentialité
+      </RouterLink>
     </v-container>
   </v-footer>
 </template>
