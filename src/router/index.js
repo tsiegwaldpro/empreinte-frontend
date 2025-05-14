@@ -16,6 +16,7 @@ import Confirm from "@/pages/Confirm.vue";
 import Profile from "@/pages/Profile.vue";
 import ForgotPassword from "@/pages/ForgotPassword.vue";
 import ResetPassword from "@/pages/ResetPassword.vue";
+import MentionsLegales from "../pages/MentionsLegales.vue";
 
 const routes = [
   {
@@ -27,6 +28,11 @@ const routes = [
       { path: "register", name: "Register", component: Register },
       { path: "confirm/:token", name: "Confirm", component: Confirm },
       { path: "profile", name: "Profile", component: Profile },
+      {
+        path: "/mentions-legales",
+        name: "MentionsLegales",
+        component: MentionsLegales,
+      },
       {
         path: "forgot-password",
         name: "ForgotPassword",
