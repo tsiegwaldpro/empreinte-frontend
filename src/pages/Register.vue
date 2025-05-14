@@ -1,33 +1,35 @@
 <template>
   <v-container class="fill-height d-flex justify-center align-center">
-    <v-card class="pa-8" max-width="600" elevation="8">
-      <v-card-title class="text-h5 text-center mb-4"
-        >📝 Créer un compte</v-card-title
-      >
+    <v-card class="pa-10" max-width="800" elevation="8" width="100%">
+      <v-card-title class="text-h5 text-center mb-6">
+        📝 Créer un compte
+      </v-card-title>
 
       <v-card-text>
         <v-form
           @submit.prevent="handleRegister"
-          class="d-flex flex-column gap-4"
+          class="d-flex flex-column gap-6"
         >
-          <div class="d-flex gap-4">
-            <v-text-field
-              v-model="firstName"
-              label="Prénom"
-              required
-              density="comfortable"
-              variant="outlined"
-              class="flex-grow-1"
-            />
-            <v-text-field
-              v-model="lastName"
-              label="Nom"
-              required
-              density="comfortable"
-              variant="outlined"
-              class="flex-grow-1"
-            />
-          </div>
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="firstName"
+                label="Prénom"
+                required
+                density="comfortable"
+                variant="outlined"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="lastName"
+                label="Nom"
+                required
+                density="comfortable"
+                variant="outlined"
+              />
+            </v-col>
+          </v-row>
 
           <v-text-field
             v-model="email"
@@ -36,7 +38,6 @@
             required
             density="comfortable"
             variant="outlined"
-            class="w-100"
           />
 
           <v-text-field
@@ -46,7 +47,6 @@
             required
             density="comfortable"
             variant="outlined"
-            class="w-100"
           />
 
           <v-text-field
@@ -56,24 +56,29 @@
             required
             density="comfortable"
             variant="outlined"
-            class="w-100"
           />
 
-          <v-btn :loading="loading" type="submit" color="primary" block>
+          <v-btn
+            :loading="loading"
+            type="submit"
+            color="primary"
+            size="large"
+            block
+          >
             S'inscrire
           </v-btn>
         </v-form>
 
-        <v-alert v-if="message" type="success" class="mt-4" dense>
+        <v-alert v-if="message" type="success" class="mt-6" dense>
           {{ message }}
         </v-alert>
 
-        <v-alert v-if="error" type="error" class="mt-4" dense>
+        <v-alert v-if="error" type="error" class="mt-6" dense>
           {{ error }}
         </v-alert>
       </v-card-text>
 
-      <v-card-actions class="justify-center">
+      <v-card-actions class="justify-center mt-4">
         <v-btn
           variant="text"
           to="/login"
