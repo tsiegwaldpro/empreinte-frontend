@@ -50,11 +50,17 @@ export function useRecoStorage() {
     const set = state.recoStatus[site.value][normGroup];
     localStorage.setItem(key, JSON.stringify([...set]));
   };
-
+  const computedCache = {};
   const getDoneIds = (group) => {
     const normGroup = normalizeGroup(group);
     ensureGroup(normGroup);
-    return computed(() => state.recoStatus[site.value][normGroup]);
+    const cacheKey = `${site.value}-${normGroup}`;
+    if (!computedCache[cacheKey]) {
+      computedCache[cacheKey] = computed(
+        () => state.recoStatus[site.value][normGroup]
+      );
+    }
+    return computedCache[cacheKey];
   };
 
   return {

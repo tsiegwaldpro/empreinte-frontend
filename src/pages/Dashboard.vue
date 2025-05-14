@@ -60,9 +60,10 @@
           v-for="{ key, label } in groupNames"
           :key="key"
           v-show="!selectedGroup || selectedGroup === key"
-          :group="label"
+          :group="key"
           :recs="groupedRecommandations[key]"
           :selectedImpact="selectedImpact"
+          @recoToggled="() => refreshCategorySummary++"
         />
       </v-col>
       <v-col cols="12" md="3">
@@ -81,6 +82,7 @@
 </template>
 
 <script setup>
+const refreshCategorySummary = ref(0);
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api";
@@ -115,8 +117,9 @@ const groupLabels = {
   general: "Autres",
 };
 
-const getGroupLabel = (key) =>
-  groupLabels[key?.toLowerCase().replace(/\s+/g, "-")] || key;
+const normalizeKey = (key) =>
+  key?.toLowerCase().replace(/\s+/g, "-") || "general";
+const getGroupLabel = (key) => groupLabels[normalizeKey(key)] || key;
 
 watch(audit, (val) => {
   allRecs.value = Array.isArray(val?.recommandations)
@@ -154,7 +157,7 @@ const formatDate = (iso) => {
 const groupedRecommandations = computed(() => {
   const grouped = {};
   for (const rec of audit.value?.recommandations || []) {
-    const key = rec.group?.toLowerCase().replace(/\s+/g, "-") || "general";
+    const key = normalizeKey(rec.group);
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(rec);
   }

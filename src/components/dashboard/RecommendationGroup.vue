@@ -2,7 +2,7 @@
   <v-expansion-panels v-model="openPanel" flat multiple>
     <v-expansion-panel>
       <v-expansion-panel-title>
-        {{ group }} — {{ done }} / {{ total }}
+        {{ getGroupLabel(group) }} — {{ done }} / {{ total }}
       </v-expansion-panel-title>
 
       <v-expansion-panel-text>
@@ -13,10 +13,11 @@
             class="reco-item"
             :class="{ 'reco-done': isRecoChecked(r.id) }"
           >
+            <!-- ✅ Reco cochée -->
             <template v-if="isRecoChecked(r.id)">
               <div class="d-flex align-center">
                 <v-checkbox
-                  :model-value="isRecoChecked(r.id)"
+                  :model-value="true"
                   @change="toggleRecoDone(r.id)"
                   hide-details
                   density="compact"
@@ -28,10 +29,11 @@
               </div>
             </template>
 
+            <!-- ❌ Reco non cochée -->
             <template v-else>
               <div class="d-flex align-center mb-1">
                 <v-checkbox
-                  :model-value="isRecoChecked(r.id)"
+                  :model-value="false"
                   @change="toggleRecoDone(r.id)"
                   hide-details
                   density="compact"
@@ -101,33 +103,51 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useRecoStorage } from "@/composables/useRecoStorage";
 
+const groupLabels = {
+  performance: "Performances",
+  "best-practices": "Bonnes pratiques",
+  accessibility: "Accessibilité",
+  seo: "SEO",
+  general: "Autres",
+};
+
+const normalizeGroup = (key) =>
+  key?.toLowerCase().replace(/\s+/g, "-") || "general";
+
+const getGroupLabel = (key) => groupLabels[normalizeGroup(key)] || key;
+
+// Props
 const props = defineProps({
-  group: String,
-  recs: Array,
-  selectedImpact: String,
+  group: String, // 🔑 Clé du groupe (ex: "best-practices")
+  recs: Array, // ✅ Liste des recos du groupe
+  selectedImpact: String, // 🎯 Criticité filtrée (facultative)
 });
 
+// Emit vers parent pour informer d'un changement
+const emit = defineEmits(["recoToggled"]);
+
+// Storage local
 const { isRecoDone, toggleReco, getDoneIds } = useRecoStorage();
 
-// ⚙️ Pour le panneau ouvert ou fermé
+// Panneau accordéon ouvert/fermé
 const openPanel = ref([0]);
 const site =
   new URLSearchParams(window.location.search).get("site") || "default";
 const localKey = `group-open-${site}-${props.group}`;
-
 onMounted(() => {
   if (localStorage.getItem(localKey) === "false") openPanel.value = [];
 });
-
 watch(openPanel, (val) => {
   localStorage.setItem(localKey, val.length ? "true" : "false");
 });
 
-// ✅ Utilitaires locaux liés à la centralisation
+// ✅ Logique recos
 const isRecoChecked = (id) => isRecoDone(props.group, id);
-const toggleRecoDone = (id) => toggleReco(props.group, id);
+const toggleRecoDone = (id) => {
+  toggleReco(props.group, id);
+  emit("recoToggled"); // 🔁 mettra à jour le CategorySummary
+};
 
-// 💡 Calculs
 const filteredRecs = computed(() =>
   !props.selectedImpact
     ? props.recs
@@ -135,7 +155,7 @@ const filteredRecs = computed(() =>
 );
 
 const total = computed(() => props.recs.length);
-const done = computed(() => getDoneIds(props.group).size);
+const done = computed(() => getDoneIds(props.group).value.size);
 </script>
 
 <style scoped>
