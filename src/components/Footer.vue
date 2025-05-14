@@ -1,28 +1,32 @@
 <template>
   <v-footer app padless color="grey-darken-4">
     <v-container
-      class="text-center text-grey-lighten-1 py-4 d-flex flex-column flex-md-row justify-center align-center gap-2"
+      class="text-grey-lighten-1 py-4 d-flex flex-column flex-md-row justify-center align-center text-center text-caption"
     >
-      <span
-        >© {{ new Date().getFullYear() }} — Empreinte. Tous droits
-        réservés.</span
-      >
+      <span class="mb-2 mb-md-0">
+        © {{ new Date().getFullYear() }} — Empreinte. Tous droits réservés.
+      </span>
+
       <RouterLink
         to="/mentions-legales"
-        class="text-grey-lighten-1 text-caption text-decoration-underline"
+        class="mx-2 text-grey-lighten-1 text-decoration-underline"
         style="cursor: pointer"
       >
         Mentions légales
       </RouterLink>
+
       <RouterLink
         to="/politique-confidentialite"
-        class="text-grey-lighten-1 text-caption text-decoration-underline"
+        class="mx-2 text-grey-lighten-1 text-decoration-underline"
+        style="cursor: pointer"
       >
         Politique de confidentialité
       </RouterLink>
+
       <RouterLink
         to="/cgu"
-        class="text-grey-lighten-1 text-caption text-decoration-underline"
+        class="mx-2 text-grey-lighten-1 text-decoration-underline"
+        style="cursor: pointer"
       >
         CGU
       </RouterLink>
