@@ -1,16 +1,42 @@
 <template>
   <v-card class="pa-4">
     <div class="d-flex justify-space-between align-center mb-4">
-      <v-card-title class="text-h6">🎟️ Codes Premium générés</v-card-title>
       <v-btn color="primary" @click="generateCode" :loading="loadingGen">
         ➕ Générer un code
       </v-btn>
     </div>
 
+    <!-- 🎛️ Filtres -->
+    <div class="mb-4">
+      <!--
+      <div class="text-subtitle-2 font-weight-medium mb-2">Utilisé</div>
+      -->
+      <div class="d-flex gap-4">
+        <v-checkbox
+          v-model="filterUsed"
+          :true-value="true"
+          :false-value="null"
+          label="Oui"
+          density="compact"
+          hide-details
+        />
+        <v-checkbox
+          v-model="filterUnused"
+          :true-value="true"
+          :false-value="null"
+          label="Non"
+          density="compact"
+          hide-details
+        />
+      </div>
+    </div>
+
+    <!-- 📋 Tableau -->
     <v-data-table
       :headers="headers"
-      :items="codes"
+      :items="filteredCodes"
       :loading="loading"
+      :sort-by="[{ key: 'expiresAt', order: 'desc' }]"
       class="mt-4"
     >
       <template #item.isUsed="{ item }">
@@ -44,14 +70,14 @@
       </template>
     </v-data-table>
 
-    <v-snackbar v-model="snackbar" color="green">{{
-      snackbarMessage
-    }}</v-snackbar>
+    <v-snackbar v-model="snackbar" color="green">
+      {{ snackbarMessage }}
+    </v-snackbar>
   </v-card>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import api from "@/api";
 
 const codes = ref([]);
@@ -60,11 +86,15 @@ const loadingGen = ref(false);
 const snackbar = ref(false);
 const snackbarMessage = ref("");
 
+// 🎯 Filtres checkboxes
+const filterUsed = ref(null);
+const filterUnused = ref(null);
+
 const headers = [
   { title: "Code", key: "code" },
   { title: "Utilisé", key: "isUsed" },
   { title: "Utilisateur", key: "usedBy" },
-  { title: "Expiration", key: "expiresAt" },
+  { title: "Expiration", key: "expiresAt", sortable: true },
   { title: "Actions", key: "actions", sortable: false },
 ];
 
@@ -86,16 +116,24 @@ const fetchCodes = async () => {
   }
 };
 
+const filteredCodes = computed(() => {
+  return codes.value.filter((c) => {
+    const showUsed = filterUsed.value === true && c.isUsed === true;
+    const showUnused = filterUnused.value === true && c.isUsed === false;
+
+    if (!filterUsed.value && !filterUnused.value) return true;
+    return showUsed || showUnused;
+  });
+});
+
 const generateCode = async () => {
   loadingGen.value = true;
   try {
     const res = await api.post("/admin/generate-code");
     const code = res.data.code;
 
-    // Copier automatiquement dans le presse-papier
     await navigator.clipboard.writeText(code);
-
-    snackbarMessage.value = `✅ Code copié ! Ajoute ce code dans ton profil pour profiter d’un compte premium pendant 24h.`;
+    snackbarMessage.value = `✅ Code copié !`;
     snackbar.value = true;
 
     await fetchCodes();

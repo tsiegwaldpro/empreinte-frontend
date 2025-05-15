@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex">
     <!-- ✅ Barre latérale admin -->
-    <v-navigation-drawer app permanent color="#26474E" class="text-white">
+    <v-navigation-drawer app permanent class="text-white">
       <v-list nav dense>
         <v-list-item
           v-for="item in menu"
