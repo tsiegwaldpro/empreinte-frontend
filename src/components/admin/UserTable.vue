@@ -133,10 +133,15 @@ onMounted(async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    console.log("🌐 Données brutes de /admin/users :", res.data);
+    console.log("📌 Type de retour :", typeof res.data);
+    console.log("📌 res.data.users :", res.data.users);
+
     const data = res.data;
     users.value = Array.isArray(data) ? data : data.users || [];
+    console.log("✅ Données utilisées pour users.value :", users.value);
   } catch (err) {
-    console.error("Erreur chargement utilisateurs :", err);
+    console.error("❌ Erreur chargement utilisateurs :", err);
   }
 });
 
