@@ -58,13 +58,40 @@
       >
         <v-icon>mdi-eye</v-icon>
       </v-btn>
+
+      <v-btn
+        icon
+        variant="text"
+        size="small"
+        color="error"
+        @click="confirmDelete(item.url)"
+        title="Supprimer tous les audits de ce site"
+      >
+        <v-icon>mdi-delete</v-icon>
+      </v-btn>
     </template>
   </v-data-table>
+
+  <v-dialog v-model="dialog" max-width="400px">
+    <v-card>
+      <v-card-title class="text-h6">Confirmation</v-card-title>
+      <v-card-text>
+        Êtes-vous sûr de vouloir supprimer
+        <strong>{{ siteToDelete }}</strong> et tous ses audits ?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text @click="dialog = false">Annuler</v-btn>
+        <v-btn text color="error" @click="deleteSiteAudits">Supprimer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import api from "@/api"; // ton instance axios ou équivalent
 
 const props = defineProps({
   sites: {
@@ -72,6 +99,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const emit = defineEmits(["refresh"]);
 
 const sortBy = ref([{ key: "createdAt", order: "desc" }]);
 
@@ -88,8 +117,31 @@ const computedSites = computed(() =>
 
 const router = useRouter();
 
+const dialog = ref(false);
+const siteToDelete = ref("");
+
 const goTo = (url) => {
   router.push({ name: "DashboardAudit", query: { site: url } });
+};
+
+const confirmDelete = (url) => {
+  siteToDelete.value = url;
+  dialog.value = true;
+};
+
+const deleteSiteAudits = async () => {
+  dialog.value = false;
+  try {
+    const token = localStorage.getItem("token");
+    await api.delete(`/audits/site`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { site: siteToDelete.value },
+    });
+    emit("refresh");
+  } catch (error) {
+    console.error("Erreur suppression audits :", error);
+    alert("Erreur lors de la suppression, regarde la console.");
+  }
 };
 
 const headers = [
