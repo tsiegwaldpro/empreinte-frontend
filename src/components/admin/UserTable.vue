@@ -83,8 +83,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
 import { useRouter } from "vue-router";
+import api from "@/api";
 
 const users = ref([]);
 const filterFreemium = ref(true);
@@ -129,9 +129,8 @@ const formatDate = (date) => {
 onMounted(async () => {
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get("/api/admin/users", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+
+    const res = await api.get("/admin/users");
 
     console.log("🌐 Données brutes de /admin/users :", res.data);
     console.log("📌 Type de retour :", typeof res.data);
