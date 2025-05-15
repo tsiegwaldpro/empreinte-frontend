@@ -132,7 +132,9 @@ onMounted(async () => {
     const res = await axios.get("/api/admin/users", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    users.value = res.data;
+
+    const data = res.data;
+    users.value = Array.isArray(data) ? data : data.users || [];
   } catch (err) {
     console.error("Erreur chargement utilisateurs :", err);
   }
