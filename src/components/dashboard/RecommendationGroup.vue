@@ -83,11 +83,11 @@
                 <v-list-item
                   v-for="(a, j) in r.actions"
                   :key="j"
-                  class="bg-grey-darken-4 rounded-sm my-2"
+                  class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
                 >
                   <v-list-item-title>{{ a.label }}</v-list-item-title>
                   <v-list-item-subtitle v-if="a.code">
-                    <pre><code>{{ a.code }}</code></pre>
+                    <pre class="action-code"><code>{{ a.code }}</code></pre>
                   </v-list-item-subtitle>
                 </v-list-item>
               </div>
@@ -166,5 +166,16 @@ const done = computed(() => getDoneIds(props.group).value.size);
 }
 .reco-done {
   opacity: 0.5;
+}
+.action-item {
+  overflow: visible !important;
+}
+.action-code {
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: none;
+  background-color: #1f1f1f;
+  padding: 12px;
+  border-radius: 4px;
 }
 </style>

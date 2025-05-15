@@ -82,7 +82,6 @@
 </template>
 
 <script setup>
-const refreshCategorySummary = ref(0);
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/api";
@@ -108,6 +107,7 @@ const selectedImpact = ref(null);
 const isReloading = ref(false);
 const referenceScores = ref(null);
 const allRecs = ref([]);
+const refreshCategorySummary = ref(0);
 
 const groupLabels = {
   performance: "Performances",
@@ -218,8 +218,27 @@ const relaunchAudit = async () => {
   }
 };
 
+const loadAuditById = async (auditId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Non authentifié");
+
+    const res = await api.get(`/audit/${auditId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    audit.value = res.data;
+  } catch (err) {
+    console.error("Erreur chargement audit :", err);
+  }
+};
+
 const loadAudit = (a) => {
-  audit.value = a;
+  if (a?._id) {
+    loadAuditById(a._id);
+  } else {
+    audit.value = a;
+  }
 };
 
 const filteredHistory = computed(() =>
@@ -266,7 +285,6 @@ const fetchAuditData = async () => {
       const local = localStorage.getItem("lastAudit");
       if (local) {
         audit.value = JSON.parse(local);
-        console.log("⚠️ Audit chargé depuis localStorage (fallback)");
       }
     }
   } catch (err) {

@@ -23,13 +23,15 @@
           height="100%"
           class="rounded-e"
           style="border-top-left-radius: 0; border-bottom-left-radius: 0"
+          :disabled="!url.trim()"
+          title="Lancer l'audit"
         >
           <v-icon>mdi-arrow-right</v-icon>
         </v-btn>
       </v-col>
     </v-row>
 
-    <p v-if="error" class="text-red text-center">{{ error }}</p>
+    <p v-if="error" class="text-red text-center mt-2">{{ error }}</p>
   </v-form>
 </template>
 
@@ -45,6 +47,14 @@ const loading = ref(false);
 const error = ref(null);
 const router = useRouter();
 
+const normalizeUrl = (inputUrl) => {
+  let u = inputUrl.trim();
+  if (!u.startsWith("http")) {
+    u = "https://" + u;
+  }
+  return u;
+};
+
 const handleAudit = async () => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -52,14 +62,16 @@ const handleAudit = async () => {
     return;
   }
 
+  if (!url.value.trim()) {
+    error.value = "L'URL ne peut pas être vide.";
+    return;
+  }
+
   loading.value = true;
   error.value = null;
 
   try {
-    let formattedUrl = url.value.trim();
-    if (!formattedUrl.startsWith("http")) {
-      formattedUrl = "https://" + formattedUrl;
-    }
+    const formattedUrl = normalizeUrl(url.value);
 
     const res = await api.post(
       "/audit",
@@ -81,8 +93,10 @@ const handleAudit = async () => {
 
     emit("auditLaunched", formattedUrl);
   } catch (err) {
-    error.value = "Erreur lors de l'audit. Vérifie l'URL.";
-    console.error(err);
+    error.value =
+      err.response?.data?.error ||
+      "Erreur lors de l'audit. Vérifie l'URL ou réessaye plus tard.";
+    console.error("Erreur audit :", err);
   } finally {
     loading.value = false;
   }

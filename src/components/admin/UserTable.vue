@@ -101,6 +101,7 @@ const headers = [
   { title: "Actions", key: "actions", sortable: false },
 ];
 
+// Filtre les utilisateurs selon les rôles sélectionnés
 const filteredUsers = computed(() => {
   return users.value.filter((u) => {
     const isFreemium = filterFreemium.value && u.role === "freemium";
@@ -110,6 +111,7 @@ const filteredUsers = computed(() => {
   });
 });
 
+// Retourne la couleur à afficher selon le rôle
 const getRoleColor = (role) => {
   switch (role) {
     case "admin":
@@ -122,28 +124,24 @@ const getRoleColor = (role) => {
   }
 };
 
+// Formate une date en format local FR ou affiche "Jamais"
 const formatDate = (date) => {
   return date ? new Date(date).toLocaleDateString("fr-FR") : "Jamais";
 };
 
+// Charge les utilisateurs depuis l'API au montage du composant
 onMounted(async () => {
   try {
-    const token = localStorage.getItem("token");
-
     const res = await api.get("/admin/users");
-
-    console.log("🌐 Données brutes de /admin/users :", res.data);
-    console.log("📌 Type de retour :", typeof res.data);
-    console.log("📌 res.data.users :", res.data.users);
-
+    // Gère si le retour est tableau direct ou objet avec clé users
     const data = res.data;
     users.value = Array.isArray(data) ? data : data.users || [];
-    console.log("✅ Données utilisées pour users.value :", users.value);
   } catch (err) {
-    console.error("❌ Erreur chargement utilisateurs :", err);
+    console.error("Erreur chargement utilisateurs :", err);
   }
 });
 
+// Redirection vers la page dashboard avec le userId en query param
 const goToUserDashboard = (userId) => {
   router.push(`/dashboard?user=${userId}`);
 };
