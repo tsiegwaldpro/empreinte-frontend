@@ -80,14 +80,16 @@ const handleLogin = async () => {
     const token = res.data.token;
     const user = res.data.user;
 
-    auth.login(token); // Tu peux l'étendre plus tard pour stocker aussi le user
+    auth.login(token, user); // ✅ on passe bien l'objet user ici
 
     localStorage.setItem("showWelcome", "true");
-    localStorage.setItem("user", JSON.stringify(user)); // pour le rôle plus tard
+
+    // Ce setItem est redondant si auth.js le fait déjà, mais utile si tu veux le retrouver hors pinia
+    localStorage.setItem("user", JSON.stringify(user));
 
     // ✅ Redirection selon le rôle
     if (user.role === "admin") {
-      router.push("/admin/dashboard");
+      router.push("/admin");
     } else {
       router.push("/");
     }

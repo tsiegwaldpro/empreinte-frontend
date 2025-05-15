@@ -5,7 +5,7 @@
         🌿 Empreinte
       </RouterLink>
 
-      <div>
+      <div class="d-flex align-center gap-2">
         <v-btn
           v-if="auth.isAuthenticated"
           to="/dashboard"
@@ -13,6 +13,16 @@
           class="text-white"
         >
           Dashboard
+        </v-btn>
+
+        <!-- ✅ Bouton admin visible uniquement pour les admins -->
+        <v-btn
+          v-if="auth.isAuthenticated && auth.user?.role === 'admin'"
+          to="/admin"
+          variant="text"
+          class="text-white"
+        >
+          Admin
         </v-btn>
 
         <v-btn
@@ -52,6 +62,8 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const auth = useAuthStore();
+
+console.log("🔍 Auth Store :", auth.user);
 
 const logout = () => {
   auth.logout();
