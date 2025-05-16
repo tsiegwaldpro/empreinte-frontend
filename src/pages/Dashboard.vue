@@ -55,9 +55,7 @@
     </v-row>
 
     <v-row dense v-if="audit">
-      <v-col cols="12" md="9">
-        <CategorySummary :recommendations="allRecs" />
-
+      <v-col cols="12" md="12">
         <!-- BLOC 1 : ACTIONNABLES PAR GROUPE -->
         <template v-for="{ key, label } in groupNames" :key="key">
           <RecommendationGroup
@@ -77,17 +75,6 @@
           class="mt-12"
         />
       </v-col>
-      <v-col cols="12" md="3">
-        <AuditHistory
-          :referenceAudit="referenceAudit"
-          :pastAudits="pastAudits"
-          :currentAuditId="audit?._id"
-          :lastAuditId="history.at(-1)?._id"
-          :isReloading="isReloading"
-          @relaunch="relaunchAudit"
-          @select="loadAudit"
-        />
-      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -102,8 +89,6 @@ import FootPrint from "@/components/dashboard/FootPrint.vue";
 import FiltersAndCriticity from "@/components/dashboard/FiltersAndCriticity.vue";
 import RecommendationGroup from "@/components/dashboard/RecommendationGroup.vue";
 import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
-import CategorySummary from "@/components/dashboard/CategorySummary.vue";
-import AuditHistory from "@/components/dashboard/AuditHistory.vue";
 import NosConseils from "@/components/dashboard/NosConseils.vue"; // <-- nouveau composant
 
 import { useRecoStorage } from "@/composables/useRecoStorage";
@@ -137,16 +122,6 @@ watch(audit, (val) => {
     ? val.recommandations
     : [];
 });
-const referenceAudit = computed(() =>
-  history.value.length ? history.value.at(-1) : null
-);
-
-const pastAudits = computed(() =>
-  referenceAudit.value
-    ? history.value.filter((a) => a._id !== referenceAudit.value._id)
-    : []
-);
-
 const impactLevels = [
   { icon: "💥", label: "Critique" },
   { icon: "⚠️", label: "Moyenne" },
@@ -266,14 +241,6 @@ const loadAudit = (a) => {
     audit.value = a;
   }
 };
-
-const filteredHistory = computed(() =>
-  audit.value?.url
-    ? history.value.filter(
-        (a) => a.url === audit.value.url && a._id !== audit.value._id
-      )
-    : []
-);
 
 const fetchReferenceAudit = async () => {
   try {

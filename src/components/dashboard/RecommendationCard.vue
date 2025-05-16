@@ -1,39 +1,3 @@
-<script setup>
-import { ref, computed, watch, nextTick } from "vue";
-import { useRecoStorage } from "@/composables/useRecoStorage";
-
-// Props
-const props = defineProps({
-  reco: { type: Object, required: true },
-  group: { type: String, required: true },
-  auditId: String, // AJOUT ICI
-});
-const emit = defineEmits(["toggleDone"]);
-
-// Gestion done (coché)
-const { isRecoDone, toggleReco } = useRecoStorage(props.auditId);
-
-const isDone = computed(() => isRecoDone(props.group, props.reco.id));
-const toggleDone = () => {
-  toggleReco(props.group, props.reco.id);
-  emit("toggleDone", props.reco.id);
-};
-
-// Accordéon actions : par défaut OUVERT si <=4 actions, fermé sinon
-const actionsOpen = ref([]);
-watch(
-  () => props.reco.actions,
-  (newActions) => {
-    nextTick(() => {
-      if (newActions && newActions.length > 0) {
-        actionsOpen.value = newActions.length <= 4 ? [0] : [];
-      }
-    });
-  },
-  { immediate: true }
-);
-</script>
-
 <template>
   <v-list-item :class="{ 'reco-done': isDone }" class="reco-card mb-4">
     <!-- ✅ Case à cocher -->
@@ -96,7 +60,7 @@ watch(
       </ul>
     </div>
 
-    <!-- ACTIONS CONCRÈTES -->
+    <!-- ACTIONS CONCRÈTES REGROUPÉES -->
     <div v-if="reco.actions?.length">
       <h4 class="text-subtitle-2 mb-1">
         🛠 Actions concrètes
@@ -109,14 +73,36 @@ watch(
       <div v-if="reco.actions.length <= 4">
         <v-list density="compact" class="bg-transparent px-0">
           <v-list-item
-            v-for="(a, j) in reco.actions"
+            v-for="(group, j) in groupedActions"
             :key="j"
             class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
           >
-            <v-list-item-title>{{ a.label }}</v-list-item-title>
-            <v-list-item-subtitle v-if="a.code">
-              <pre class="action-code"><code>{{ a.code }}</code></pre>
-            </v-list-item-subtitle>
+            <v-list-item-title class="font-weight-bold mb-2">
+              {{ group.baseLabel }}
+            </v-list-item-title>
+            <!-- Liste fichiers/URLs regroupées -->
+            <ul class="action-file-list" v-if="group.codes.length">
+              <li v-for="(code, idx) in group.codes" :key="idx">
+                <span class="file-label">{{ code.file }}</span>
+                <br v-if="code.url" />
+                <code v-if="code.url" class="action-url">{{ code.url }}</code>
+              </li>
+            </ul>
+            <!-- Actions orphelines (pas groupées) -->
+            <div
+              v-for="(act, idx) in group.actions"
+              :key="'solo-' + idx"
+              class="mt-2"
+            >
+              <span>{{ act.label }}</span>
+              <div
+                v-if="act.code"
+                class="text-grey-lighten-2"
+                style="font-size: 0.95em"
+              >
+                <pre class="action-code"><code>{{ act.code }}</code></pre>
+              </div>
+            </div>
           </v-list-item>
         </v-list>
       </div>
@@ -132,14 +118,37 @@ watch(
             <v-expansion-panel-text>
               <v-list density="compact" class="bg-transparent px-0">
                 <v-list-item
-                  v-for="(a, j) in reco.actions"
+                  v-for="(group, j) in groupedActions"
                   :key="j"
                   class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
                 >
-                  <v-list-item-title>{{ a.label }}</v-list-item-title>
-                  <v-list-item-subtitle v-if="a.code">
-                    <pre class="action-code"><code>{{ a.code }}</code></pre>
-                  </v-list-item-subtitle>
+                  <v-list-item-title class="font-weight-bold mb-2">
+                    {{ group.baseLabel }}
+                  </v-list-item-title>
+                  <ul class="action-file-list" v-if="group.codes.length">
+                    <li v-for="(code, idx) in group.codes" :key="idx">
+                      <span class="file-label">{{ code.file }}</span>
+                      <br v-if="code.url" />
+                      <code v-if="code.url" class="action-url">{{
+                        code.url
+                      }}</code>
+                    </li>
+                  </ul>
+                  <!-- Actions orphelines (pas groupées) -->
+                  <div
+                    v-for="(act, idx) in group.actions"
+                    :key="'solo-' + idx"
+                    class="mt-2"
+                  >
+                    <span>{{ act.label }}</span>
+                    <div
+                      v-if="act.code"
+                      class="text-grey-lighten-2"
+                      style="font-size: 0.95em"
+                    >
+                      <pre class="action-code"><code>{{ act.code }}</code></pre>
+                    </div>
+                  </div>
                 </v-list-item>
               </v-list>
             </v-expansion-panel-text>
@@ -149,6 +158,79 @@ watch(
     </div>
   </v-list-item>
 </template>
+
+<script setup>
+import { ref, computed, watch, nextTick } from "vue";
+import { useRecoStorage } from "@/composables/useRecoStorage";
+
+// Props
+const props = defineProps({
+  reco: { type: Object, required: true },
+  group: { type: String, required: true },
+});
+const emit = defineEmits(["toggleDone"]);
+
+// Gestion done (coché)
+const { isRecoDone, toggleReco } = useRecoStorage();
+const isDone = computed(() => isRecoDone(props.group, props.reco.id));
+const toggleDone = () => {
+  toggleReco(props.group, props.reco.id);
+  emit("toggleDone", props.reco.id);
+};
+
+// Groupement des actions par label générique (pour éviter la répétition)
+function groupActions(actions) {
+  const groups = {};
+  for (const action of actions) {
+    let baseLabel = action.label;
+    let fileLabel = null;
+    const match = action.label.match(/^(.*) : (.+)$/);
+    if (match) {
+      baseLabel = match[1].trim();
+      fileLabel = match[2].trim();
+    }
+    if (!groups[baseLabel]) {
+      groups[baseLabel] = {
+        baseLabel,
+        actions: [],
+        codes: [],
+      };
+    }
+    if (fileLabel) {
+      if (action.code) {
+        groups[baseLabel].codes.push({
+          file: fileLabel,
+          url: action.code,
+        });
+      } else {
+        groups[baseLabel].codes.push({ file: fileLabel });
+      }
+    } else {
+      groups[baseLabel].actions.push(action);
+    }
+  }
+  return Object.values(groups);
+}
+
+// Accordéon actions : par défaut OUVERT si <=4 actions, fermé sinon
+const actionsOpen = ref([]);
+watch(
+  () => props.reco.actions,
+  (newActions) => {
+    nextTick(() => {
+      if (newActions && newActions.length > 0) {
+        actionsOpen.value = newActions.length <= 4 ? [0] : [];
+      }
+    });
+  },
+  { immediate: true }
+);
+
+// Nouvelle liste groupée pour affichage
+const groupedActions = computed(() =>
+  props.reco.actions ? groupActions(props.reco.actions) : []
+);
+</script>
 
 <style scoped>
 .reco-card {
@@ -169,5 +251,32 @@ watch(
   background-color: #1f1f1f;
   padding: 12px;
   border-radius: 4px;
+}
+.action-file-list {
+  margin: 0 0 0 0.6em;
+  padding: 0;
+  list-style-type: disc;
+}
+.action-file-list li {
+  margin-bottom: 6px;
+  font-size: 1em;
+  color: #eee;
+  line-height: 1.25;
+  word-break: break-all;
+}
+.file-label {
+  font-weight: 500;
+  color: #ffc107;
+  font-size: 1em;
+}
+.action-url {
+  background: #232323;
+  color: #6fd2ff;
+  padding: 1px 6px 1px 6px;
+  font-size: 0.96em;
+  border-radius: 4px;
+  margin-left: 0.6em;
+  display: inline-block;
+  margin-top: 2px;
 }
 </style>
