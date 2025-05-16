@@ -74,9 +74,6 @@
         </v-list-item-subtitle>
       </v-list-item>
     </div>
-    <div v-else class="text-grey-lighten-2">
-      <i>Aucune action concrète détectée</i>
-    </div>
   </v-list-item>
 </template>
 
