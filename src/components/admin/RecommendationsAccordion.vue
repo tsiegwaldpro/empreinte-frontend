@@ -50,14 +50,35 @@
                 <div class="text-h6">{{ reco.title }}</div>
                 <div class="text-caption text-grey">{{ reco.group }}</div>
               </div>
-              <v-btn
-                icon
-                color="primary"
-                @click.stop="openAddActionForm(reco)"
-                title="Ajouter une action"
-              >
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
+              <div class="d-flex align-center gap-2">
+                <!-- Badge type d’action -->
+                <v-chip
+                  v-if="reco.actions?.some((a) => a.type === 'dynamic')"
+                  color="info"
+                  size="small"
+                  class="mr-2"
+                  label
+                >
+                  Actions automatiques
+                </v-chip>
+                <v-chip
+                  v-else-if="reco.actions?.length"
+                  color="deep-orange"
+                  size="small"
+                  class="mr-2"
+                  label
+                >
+                  Actions catalogue
+                </v-chip>
+                <v-btn
+                  icon
+                  color="primary"
+                  @click.stop="openAddActionForm(reco)"
+                  title="Ajouter une action"
+                >
+                  <v-icon>mdi-plus</v-icon>
+                </v-btn>
+              </div>
             </div>
             <ActionSummary
               v-if="reco.actions?.length"

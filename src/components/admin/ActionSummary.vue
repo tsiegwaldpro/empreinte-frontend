@@ -5,11 +5,17 @@
       <v-chip
         v-for="(action, idx) in actions"
         :key="idx"
-        small
         class="text-white"
+        :color="action.type === 'dynamic' ? 'info' : 'deep-orange'"
+        size="small"
+        label
       >
         {{ action.label }}
+        <span class="ml-2 text-caption">{{
+          action.type === "dynamic" ? "Auto" : "Catalogue"
+        }}</span>
         <v-icon
+          v-if="action.type !== 'dynamic'"
           right
           small
           class="ml-1"
@@ -18,6 +24,7 @@
           >mdi-pencil</v-icon
         >
         <v-icon
+          v-if="action.type !== 'dynamic'"
           right
           small
           class="ml-1"
@@ -28,7 +35,7 @@
       </v-chip>
     </div>
 
-    <!-- Mode détaillé : liste avec code -->
+    <!-- Mode détaillé : liste avec code et badge -->
     <div v-else class="d-flex flex-column gap-4 mt-4">
       <div
         v-for="(action, idx) in actions"
@@ -36,11 +43,21 @@
         class="pa-4 bg-grey-darken-3 rounded d-flex flex-column"
       >
         <div class="d-flex justify-space-between align-start mb-2">
-          <h4 class="text-subtitle-1 font-weight-bold mb-1 text-white">
-            {{ action.label }}
-          </h4>
+          <div class="d-flex align-center gap-2">
+            <h4 class="text-subtitle-1 font-weight-bold mb-1 text-white">
+              {{ action.label }}
+            </h4>
+            <v-chip
+              :color="action.type === 'dynamic' ? 'info' : 'deep-orange'"
+              size="x-small"
+              label
+            >
+              {{ action.type === "dynamic" ? "Automatique" : "Catalogue" }}
+            </v-chip>
+          </div>
           <div class="d-flex gap-2">
             <v-btn
+              v-if="action.type !== 'dynamic'"
               icon
               size="small"
               color="primary"
@@ -51,6 +68,7 @@
               <v-icon size="20">mdi-pencil</v-icon>
             </v-btn>
             <v-btn
+              v-if="action.type !== 'dynamic'"
               icon
               size="small"
               color="red"

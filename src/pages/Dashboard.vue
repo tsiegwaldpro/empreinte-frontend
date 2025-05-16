@@ -125,8 +125,16 @@ watch(audit, (val) => {
   allRecs.value = Array.isArray(val?.recommandations)
     ? val.recommandations
     : [];
-});
 
+  // === AJOUTE CE BLOC LOG ICI ===
+  if (val?.recommandations) {
+    console.log("=== LISTE DES RECOMMANDATIONS (audit) ===");
+    val.recommandations.forEach((rec, idx) => {
+      console.log(`#${idx + 1} - ${rec.id}`, rec.title, rec, rec.actions || []);
+    });
+  }
+  // Si tu as accès à plus de données (raw lighthouse audits), tu peux en rajouter ici plus tard.
+});
 const referenceAudit = computed(() =>
   history.value.length ? history.value.at(-1) : null
 );
