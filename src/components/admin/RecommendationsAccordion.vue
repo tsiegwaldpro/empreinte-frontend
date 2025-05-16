@@ -86,7 +86,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
-import ActionSummary from "@/components/ActionSummary.vue";
+import ActionSummary from "@/components/admin/ActionSummary.vue";
 
 const recos = ref([]);
 const onlyWithoutActions = ref(false);
