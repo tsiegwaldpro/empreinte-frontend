@@ -1,14 +1,45 @@
 <template>
   <v-card color="grey-darken-3" class="pa-4" flat>
-    <v-checkbox
-      v-model="onlyWithoutActions"
-      label="Afficher uniquement celles sans actions"
-      class="mb-4 text-white"
-    />
+    <!-- 🟦 Filtres haut : Boutons catégories + switch -->
+    <div class="d-flex flex-wrap align-center gap-4 mb-4">
+      <div>
+        <span class="text-caption mr-2 text-grey-lighten-2">Catégorie :</span>
+        <v-btn
+          v-for="cat in categories"
+          :key="cat"
+          :variant="selectedCategory === cat ? 'elevated' : 'tonal'"
+          color="primary"
+          class="me-2 mb-2 text-capitalize"
+          @click="setCategory(cat)"
+        >
+          {{ cat }}
+        </v-btn>
+      </div>
+      <!-- FILTRE SWITCH -->
+      <v-switch
+        v-model="onlyWithoutActions"
+        inset
+        color="deep-orange"
+        class="ml-6 mb-0"
+        :label="switchLabel"
+        hide-details
+      />
+    </div>
 
+    <!-- 🟦 Pagination (haut) -->
+    <div class="d-flex justify-center mb-3">
+      <v-pagination
+        v-model="currentPage"
+        :length="totalPages"
+        color="primary"
+        density="comfortable"
+      />
+    </div>
+
+    <!-- 🟦 Liste des recos paginées -->
     <v-expansion-panels v-model="activePanel" multiple>
       <v-expansion-panel
-        v-for="reco in uniqueFilteredRecos"
+        v-for="reco in paginatedRecos"
         :key="reco.id"
         class="bg-grey-darken-4 text-white mb-2 rounded"
       >
@@ -28,8 +59,6 @@
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </div>
-
-            <!-- Affichage récapitulatif des actions -->
             <ActionSummary
               v-if="reco.actions?.length"
               :actions="reco.actions"
@@ -38,9 +67,7 @@
             />
           </div>
         </v-expansion-panel-title>
-
         <v-expansion-panel-text>
-          <!-- Détails des actions -->
           <ActionSummary
             v-if="reco.actions?.length"
             :actions="reco.actions"
@@ -52,7 +79,17 @@
       </v-expansion-panel>
     </v-expansion-panels>
 
-    <!-- Modal ajout action inchangé -->
+    <!-- 🟦 Pagination (bas) -->
+    <div class="d-flex justify-center mt-4">
+      <v-pagination
+        v-model="currentPage"
+        :length="totalPages"
+        color="primary"
+        density="comfortable"
+      />
+    </div>
+
+    <!-- Modal ajout action -->
     <v-dialog v-model="showAddActionForm" max-width="600px">
       <v-card>
         <v-card-title>
@@ -84,18 +121,48 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
 import ActionSummary from "@/components/admin/ActionSummary.vue";
 
 const recos = ref([]);
 const onlyWithoutActions = ref(false);
 const activePanel = ref([]);
+const selectedCategory = ref("Toutes");
+
+// 🟦 Catégories à filtrer
+const categories = [
+  "Toutes",
+  "Performance",
+  "Accessibility",
+  "Best Practices",
+  "SEO",
+];
+
+function setCategory(cat) {
+  selectedCategory.value = cat;
+}
+
+// Switch label dynamique
+const switchLabel = computed(() =>
+  onlyWithoutActions.value
+    ? "Seulement celles sans actions"
+    : "Afficher uniquement celles sans actions"
+);
 
 const showAddActionForm = ref(false);
 const currentReco = ref(null);
 const newActionLabel = ref("");
 const newActionCode = ref("");
+
+// 🟦 PAGINATION
+const perPage = ref(10);
+const currentPage = ref(1);
+
+// 🟦 Reset page si filtre changé
+watch([onlyWithoutActions, selectedCategory], () => {
+  currentPage.value = 1;
+});
 
 onMounted(fetchRecos);
 async function fetchRecos() {
@@ -126,12 +193,16 @@ function editAction(reco, idx) {
   showAddActionForm.value = true;
 }
 
-// Computed pour filtrer et enlever les doublons
-const filteredRecos = computed(() =>
-  onlyWithoutActions.value
-    ? recos.value.filter((r) => !r.actions?.length)
-    : recos.value
-);
+const filteredRecos = computed(() => {
+  let list = recos.value;
+  if (onlyWithoutActions.value) {
+    list = list.filter((r) => !r.actions?.length);
+  }
+  if (selectedCategory.value !== "Toutes") {
+    list = list.filter((r) => r.group === selectedCategory.value);
+  }
+  return list;
+});
 
 const uniqueFilteredRecos = computed(() => {
   const map = new Map();
@@ -139,6 +210,16 @@ const uniqueFilteredRecos = computed(() => {
     if (!map.has(r.id)) map.set(r.id, r);
   });
   return Array.from(map.values());
+});
+
+// 🟦 Pagination
+const totalPages = computed(() =>
+  Math.ceil(uniqueFilteredRecos.value.length / perPage.value)
+);
+
+const paginatedRecos = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return uniqueFilteredRecos.value.slice(start, start + perPage.value);
 });
 
 async function submitNewAction() {
@@ -183,5 +264,8 @@ async function deleteAction(recoId, actionIndex) {
 <style scoped>
 .bg-grey-darken-4 {
   background-color: #242424 !important;
+}
+.text-capitalize {
+  text-transform: capitalize;
 }
 </style>
