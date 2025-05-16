@@ -8,11 +8,10 @@
 
     <v-expansion-panels v-model="activePanel" multiple>
       <v-expansion-panel
-        v-for="reco in filteredRecos"
+        v-for="reco in uniqueFilteredRecos"
         :key="reco.id"
         class="bg-grey-darken-4 text-white mb-2 rounded"
       >
-        <!-- Titre du panneau avec résumé des actions -->
         <v-expansion-panel-title>
           <div class="d-flex flex-column w-100">
             <div class="d-flex justify-space-between align-center w-100">
@@ -29,75 +28,31 @@
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </div>
-            <!-- Résumé des actions dans l'en-tête -->
-            <div
+
+            <!-- Affichage récapitulatif des actions -->
+            <ActionSummary
               v-if="reco.actions?.length"
-              class="mt-2 d-flex flex-wrap gap-2"
-            >
-              <v-chip
-                v-for="(action, idx) in reco.actions"
-                :key="idx"
-                small
-                class="text-white"
-              >
-                {{ action.label }}
-                <v-icon
-                  right
-                  small
-                  class="ml-1"
-                  @click.stop="editAction(reco, idx)"
-                  title="Modifier l'action"
-                  >mdi-pencil</v-icon
-                >
-                <v-icon
-                  right
-                  small
-                  class="ml-1"
-                  @click.stop="deleteAction(reco.id, idx)"
-                  title="Supprimer l'action"
-                  >mdi-delete</v-icon
-                >
-              </v-chip>
-            </div>
+              :actions="reco.actions"
+              @edit="editAction(reco, $event)"
+              @delete="deleteAction(reco.id, $event)"
+            />
           </div>
         </v-expansion-panel-title>
 
-        <!-- Détails des actions dans la partie dépliée -->
         <v-expansion-panel-text>
-          <div
+          <!-- Détails des actions -->
+          <ActionSummary
             v-if="reco.actions?.length"
-            class="d-flex flex-column gap-4 mt-4"
-          >
-            <div
-              v-for="(action, idx) in reco.actions"
-              :key="idx"
-              class="pa-4 bg-grey-darken-3 rounded d-flex flex-column"
-            >
-              <div class="d-flex justify-space-between align-start mb-2">
-                <h4 class="text-subtitle-1 font-weight-bold mb-1 text-white">
-                  {{ action.label }}
-                </h4>
-              </div>
-
-              <div
-                v-if="action.code"
-                class="text-grey-lighten-2 text-caption"
-                style="
-                  white-space: pre-wrap;
-                  background-color: #1f1f1f;
-                  padding: 12px;
-                  border-radius: 4px;
-                "
-              >
-                {{ action.code }}
-              </div>
-            </div>
-          </div>
+            :actions="reco.actions"
+            detail
+            @edit="editAction(reco, $event)"
+            @delete="deleteAction(reco.id, $event)"
+          />
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
 
-    <!-- ➕ Modal ajout action -->
+    <!-- Modal ajout action inchangé -->
     <v-dialog v-model="showAddActionForm" max-width="600px">
       <v-card>
         <v-card-title>
@@ -131,6 +86,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
+import ActionSummary from "@/components/ActionSummary.vue";
 
 const recos = ref([]);
 const onlyWithoutActions = ref(false);
@@ -141,14 +97,11 @@ const currentReco = ref(null);
 const newActionLabel = ref("");
 const newActionCode = ref("");
 
-// 🔄 Charger les recommandations
 onMounted(fetchRecos);
-
 async function fetchRecos() {
   try {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Non authentifié");
-
     const res = await axios.get("/api/admin/recommandations", {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -156,6 +109,13 @@ async function fetchRecos() {
   } catch (err) {
     console.error("Erreur chargement :", err);
   }
+}
+
+function openAddActionForm(reco) {
+  currentReco.value = reco;
+  newActionLabel.value = "";
+  newActionCode.value = "";
+  showAddActionForm.value = true;
 }
 
 function editAction(reco, idx) {
@@ -166,46 +126,36 @@ function editAction(reco, idx) {
   showAddActionForm.value = true;
 }
 
-// ✅ Filtrage si checkbox cochée
+// Computed pour filtrer et enlever les doublons
 const filteredRecos = computed(() =>
   onlyWithoutActions.value
-    ? recos.value.filter((r) => !r.actions || r.actions.length === 0)
+    ? recos.value.filter((r) => !r.actions?.length)
     : recos.value
 );
 
-// ➕ Formulaire ajout action
-function openAddActionForm(reco) {
-  currentReco.value = reco;
-  newActionLabel.value = "";
-  newActionCode.value = "";
-  showAddActionForm.value = true;
-}
+const uniqueFilteredRecos = computed(() => {
+  const map = new Map();
+  filteredRecos.value.forEach((r) => {
+    if (!map.has(r.id)) map.set(r.id, r);
+  });
+  return Array.from(map.values());
+});
 
 async function submitNewAction() {
-  if (!newActionLabel.value.trim()) {
-    alert("Label requis");
-    return;
-  }
-
+  if (!newActionLabel.value.trim()) return alert("Label requis");
   const token = localStorage.getItem("token");
   if (!token) return;
-
-  const actionToAdd = {
-    label: newActionLabel.value.trim(),
-    code: newActionCode.value.trim() || "",
-  };
-
   try {
     const res = await axios.post(
       `/api/admin/recommandations/${currentReco.value.id}/actions`,
-      actionToAdd,
       {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+        label: newActionLabel.value.trim(),
+        code: newActionCode.value.trim() || "",
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
-    const index = recos.value.findIndex((r) => r.id === res.data.id);
-    if (index !== -1) recos.value[index] = res.data;
+    const idx = recos.value.findIndex((r) => r.id === res.data.id);
+    if (idx !== -1) recos.value[idx] = res.data;
     showAddActionForm.value = false;
   } catch (err) {
     console.error("Erreur ajout action :", err);
@@ -213,19 +163,14 @@ async function submitNewAction() {
   }
 }
 
-// ❌ Suppression d'une action
 async function deleteAction(recoId, actionIndex) {
   try {
     const token = localStorage.getItem("token");
     if (!token) throw new Error("Non authentifié");
-
     await axios.delete(
       `/api/admin/recommandations/${recoId}/actions/${actionIndex}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
-
     const reco = recos.value.find((r) => r.id === recoId);
     if (reco) reco.actions.splice(actionIndex, 1);
   } catch (err) {
