@@ -1,5 +1,6 @@
 <template>
   <v-container fluid class="dashboard-view py-6">
+    <!-- Header de la page -->
     <v-col cols="12" md="12" class="mb-6">
       <v-card elevation="2" class="pa-4">
         <v-card-title class="text-h6 font-weight-bold">
@@ -39,8 +40,8 @@
       <v-col cols="12" md="3" class="d-flex">
         <FiltersAndCriticity
           :groups="groupNames"
-          :groupCounts="groupCounts"
-          :impactCounts="impactCounts"
+          :groupActionableCounts="groupActionableCounts"
+          :impactActionableCounts="impactActionableCounts"
           :levels="impactLevels"
           :selectedGroup="selectedGroup"
           :selectedImpact="selectedImpact"
@@ -56,14 +57,24 @@
     <v-row dense v-if="audit">
       <v-col cols="12" md="9">
         <CategorySummary :recommendations="allRecs" />
-        <RecommendationGroup
-          v-for="{ key, label } in groupNames"
-          :key="key"
-          v-show="!selectedGroup || selectedGroup === key"
-          :group="key"
-          :recs="groupedRecommandations[key]"
-          :selectedImpact="selectedImpact"
-          @recoToggled="() => refreshCategorySummary++"
+
+        <!-- BLOC 1 : ACTIONNABLES PAR GROUPE -->
+        <template v-for="{ key, label } in groupNames" :key="key">
+          <RecommendationGroup
+            v-if="actionableByGroup[key]?.length"
+            :group="key"
+            :recs="actionableByGroup[key]"
+            :selectedImpact="selectedImpact"
+            :auditId="audit?._id"
+            @recoToggled="() => refreshCategorySummary++"
+          />
+        </template>
+
+        <!-- BLOC 2 : NOS CONSEILS -->
+        <NosConseils
+          v-if="generalRecs.length"
+          :recs="generalRecs"
+          class="mt-12"
         />
       </v-col>
       <v-col cols="12" md="3">
@@ -93,6 +104,7 @@ import RecommendationGroup from "@/components/dashboard/RecommendationGroup.vue"
 import ToolFootprint from "@/components/dashboard/ToolFootprint.vue";
 import CategorySummary from "@/components/dashboard/CategorySummary.vue";
 import AuditHistory from "@/components/dashboard/AuditHistory.vue";
+import NosConseils from "@/components/dashboard/NosConseils.vue"; // <-- nouveau composant
 
 import { useRecoStorage } from "@/composables/useRecoStorage";
 const { getDoneIds } = useRecoStorage();
@@ -116,7 +128,6 @@ const groupLabels = {
   seo: "SEO",
   general: "Autres",
 };
-
 const normalizeKey = (key) =>
   key?.toLowerCase().replace(/\s+/g, "-") || "general";
 const getGroupLabel = (key) => groupLabels[normalizeKey(key)] || key;
@@ -125,15 +136,6 @@ watch(audit, (val) => {
   allRecs.value = Array.isArray(val?.recommandations)
     ? val.recommandations
     : [];
-
-  // === AJOUTE CE BLOC LOG ICI ===
-  if (val?.recommandations) {
-    console.log("=== LISTE DES RECOMMANDATIONS (audit) ===");
-    val.recommandations.forEach((rec, idx) => {
-      console.log(`#${idx + 1} - ${rec.id}`, rec.title, rec, rec.actions || []);
-    });
-  }
-  // Si tu as accès à plus de données (raw lighthouse audits), tu peux en rajouter ici plus tard.
 });
 const referenceAudit = computed(() =>
   history.value.length ? history.value.at(-1) : null
@@ -162,6 +164,7 @@ const formatDate = (iso) => {
   });
 };
 
+// ==== Recos groupées toutes ====
 const groupedRecommandations = computed(() => {
   const grouped = {};
   for (const rec of audit.value?.recommandations || []) {
@@ -179,28 +182,43 @@ const groupNames = computed(() =>
   }))
 );
 
-const groupCounts = computed(() => {
+// ==== Comptes recos actionnables par groupe ====
+const groupActionableCounts = computed(() => {
   const counts = {};
   for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const doneIds = getDoneIds(group).value;
-    const active = recs.filter((r) => !doneIds.has(r.id));
-    if (active.length > 0) counts[group] = active.length;
+    counts[group] = recs.filter(
+      (r) => r.actions && r.actions.length > 0
+    ).length;
   }
   return counts;
 });
 
-const impactCounts = computed(() => {
+// ==== Comptes recos actionnables par criticité ====
+const impactActionableCounts = computed(() => {
   const counts = { "💥": 0, "⚠️": 0, "🟢": 0 };
-  for (const [group, recs] of Object.entries(groupedRecommandations.value)) {
-    const doneIds = getDoneIds(group).value;
+  for (const recs of Object.values(groupedRecommandations.value)) {
     for (const rec of recs) {
-      if (!doneIds.has(rec.id) && rec.impactLevel in counts) {
+      if (rec.actions && rec.actions.length > 0 && rec.impactLevel in counts) {
         counts[rec.impactLevel] += 1;
       }
     }
   }
   return counts;
 });
+
+// ==== Actionnables par groupe ====
+const actionableByGroup = computed(() => {
+  const result = {};
+  for (const [key, recs] of Object.entries(groupedRecommandations.value)) {
+    result[key] = recs.filter((r) => r.actions && r.actions.length > 0);
+  }
+  return result;
+});
+
+// ==== Conseils (non-actionnables, tout groupe confondu) ====
+const generalRecs = computed(() =>
+  allRecs.value.filter((r) => !r.actions || r.actions.length === 0)
+);
 
 const relaunchAudit = async () => {
   if (!audit.value?.url) return;

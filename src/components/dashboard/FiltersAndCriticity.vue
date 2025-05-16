@@ -22,7 +22,7 @@
             filter
             @click="$emit('update:selectedGroup', group.key)"
           >
-            {{ group.label }} ({{ groupCounts[group.key] || 0 }})
+            {{ group.label }} ({{ groupActionableCounts[group.key] || 0 }})
           </v-chip>
         </div>
       </div>
@@ -46,7 +46,7 @@
             @click="$emit('update:selectedImpact', impact.icon)"
           >
             {{ impact.icon }} {{ impact.label }} ({{
-              impactCounts[impact.icon] || 0
+              impactActionableCounts[impact.icon] || 0
             }})
           </v-chip>
         </div>
@@ -72,8 +72,8 @@
 <script setup>
 defineProps({
   groups: Array, // Array of { key, label }
-  groupCounts: Object, // { key: number }
-  impactCounts: Object, // { icon: number }
+  groupActionableCounts: Object, // { key: number } - uniquement actionnables
+  impactActionableCounts: Object, // { icon: number } - uniquement actionnables
   levels: Array, // [{ icon, label }]
   selectedGroup: String,
   selectedImpact: String,

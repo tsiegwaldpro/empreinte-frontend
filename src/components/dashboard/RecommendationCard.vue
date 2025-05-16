@@ -1,3 +1,39 @@
+<script setup>
+import { ref, computed, watch, nextTick } from "vue";
+import { useRecoStorage } from "@/composables/useRecoStorage";
+
+// Props
+const props = defineProps({
+  reco: { type: Object, required: true },
+  group: { type: String, required: true },
+  auditId: String, // AJOUT ICI
+});
+const emit = defineEmits(["toggleDone"]);
+
+// Gestion done (coché)
+const { isRecoDone, toggleReco } = useRecoStorage(props.auditId);
+
+const isDone = computed(() => isRecoDone(props.group, props.reco.id));
+const toggleDone = () => {
+  toggleReco(props.group, props.reco.id);
+  emit("toggleDone", props.reco.id);
+};
+
+// Accordéon actions : par défaut OUVERT si <=4 actions, fermé sinon
+const actionsOpen = ref([]);
+watch(
+  () => props.reco.actions,
+  (newActions) => {
+    nextTick(() => {
+      if (newActions && newActions.length > 0) {
+        actionsOpen.value = newActions.length <= 4 ? [0] : [];
+      }
+    });
+  },
+  { immediate: true }
+);
+</script>
+
 <template>
   <v-list-item :class="{ 'reco-done': isDone }" class="reco-card mb-4">
     <!-- ✅ Case à cocher -->
@@ -62,40 +98,57 @@
 
     <!-- ACTIONS CONCRÈTES -->
     <div v-if="reco.actions?.length">
-      <h4 class="text-subtitle-2 mb-1">🛠 Actions concrètes</h4>
-      <v-list-item
-        v-for="(a, j) in reco.actions"
-        :key="j"
-        class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
-      >
-        <v-list-item-title>{{ a.label }}</v-list-item-title>
-        <v-list-item-subtitle v-if="a.code">
-          <pre class="action-code"><code>{{ a.code }}</code></pre>
-        </v-list-item-subtitle>
-      </v-list-item>
+      <h4 class="text-subtitle-2 mb-1">
+        🛠 Actions concrètes
+        <span v-if="reco.actions.length > 3" class="text-grey-lighten-2 ms-2">
+          ({{ reco.actions.length }} actions)
+        </span>
+      </h4>
+
+      <!-- Affichage direct si 4 actions ou moins -->
+      <div v-if="reco.actions.length <= 4">
+        <v-list density="compact" class="bg-transparent px-0">
+          <v-list-item
+            v-for="(a, j) in reco.actions"
+            :key="j"
+            class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
+          >
+            <v-list-item-title>{{ a.label }}</v-list-item-title>
+            <v-list-item-subtitle v-if="a.code">
+              <pre class="action-code"><code>{{ a.code }}</code></pre>
+            </v-list-item-subtitle>
+          </v-list-item>
+        </v-list>
+      </div>
+      <!-- Accordéon si plus de 4 actions -->
+      <div v-else>
+        <v-expansion-panels v-model="actionsOpen" multiple>
+          <v-expansion-panel>
+            <v-expansion-panel-title>
+              <span class="text-body-2">
+                Voir la liste des actions à réaliser ({{ reco.actions.length }})
+              </span>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-list density="compact" class="bg-transparent px-0">
+                <v-list-item
+                  v-for="(a, j) in reco.actions"
+                  :key="j"
+                  class="action-item bg-grey-darken-4 rounded-sm my-2 p-2"
+                >
+                  <v-list-item-title>{{ a.label }}</v-list-item-title>
+                  <v-list-item-subtitle v-if="a.code">
+                    <pre class="action-code"><code>{{ a.code }}</code></pre>
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </div>
     </div>
   </v-list-item>
 </template>
-
-<script setup>
-import { computed } from "vue";
-import { useRecoStorage } from "@/composables/useRecoStorage";
-
-// Props
-const props = defineProps({
-  reco: { type: Object, required: true },
-  group: { type: String, required: true },
-});
-const emit = defineEmits(["toggleDone"]);
-
-// Gestion done (coché)
-const { isRecoDone, toggleReco } = useRecoStorage();
-const isDone = computed(() => isRecoDone(props.group, props.reco.id));
-const toggleDone = () => {
-  toggleReco(props.group, props.reco.id);
-  emit("toggleDone", props.reco.id);
-};
-</script>
 
 <style scoped>
 .reco-card {
