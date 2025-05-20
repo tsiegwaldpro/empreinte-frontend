@@ -17,6 +17,23 @@
       </v-btn>
     </section>
 
+    <!-- Message Bêta Premium -->
+    <section class="mb-4">
+      <v-alert
+        type="success"
+        variant="tonal"
+        class="text-center font-weight-bold"
+        border="start"
+        prominent
+      >
+        🎉 <strong>Phase bêta :</strong> Actuellement,
+        <u
+          >tous les utilisateurs profitent gratuitement de tous les avantages
+          Premium !</u
+        >
+      </v-alert>
+    </section>
+
     <section class="mb-10">
       <h2 class="text-h5 mb-4 text-center">🧾 Comparez nos offres</h2>
       <v-card color="grey-darken-4" elevation="4" class="pa-4">
@@ -35,7 +52,7 @@
               <td class="text-center">✅</td>
             </tr>
             <tr>
-              <td>Audit complet via sitemap</td>
+              <td>Audit complet via sitemap (A venir)</td>
               <td class="text-center">❌</td>
               <td class="text-center">✅</td>
             </tr>
@@ -45,7 +62,7 @@
               <td class="text-center">✅</td>
             </tr>
             <tr>
-              <td>Priorité dans la file d’audit</td>
+              <td>Priorité dans la file d’audit (A venir)</td>
               <td class="text-center">❌</td>
               <td class="text-center">✅</td>
             </tr>
@@ -60,14 +77,22 @@
               <td class="text-center">✅</td>
             </tr>
             <tr>
-              <td>Export PDF</td>
+              <td>Export PDF (A venir)</td>
               <td class="text-center">❌</td>
               <td class="text-center">✅</td>
             </tr>
             <tr>
               <td class="font-weight-bold">Prix</td>
               <td class="text-center font-weight-bold">Gratuit</td>
-              <td class="text-center font-weight-bold">9€/mois</td>
+              <td class="text-center font-weight-bold">
+                9€/mois
+                <span
+                  class="text-grey-lighten-1 text-caption"
+                  style="display: block"
+                >
+                  (bientôt, actuellement gratuit pour tous !)
+                </span>
+              </td>
             </tr>
           </tbody>
         </v-table>
