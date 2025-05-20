@@ -45,20 +45,25 @@
               {{ getGroupLabel(reco.group) }}
             </div>
           </div>
+          <!-- Description AVEC lien "En savoir plus" à la ligne -->
           <div class="text-grey-lighten-1 mb-1">
-            <em>{{ reco.description }}</em>
+            <em v-html="formatDescriptionWithLearnMore(reco.description)"></em>
           </div>
           <div v-if="reco.advice && reco.advice.length">
             <h4 class="text-subtitle-2 mb-1">💡 Conseils</h4>
-            <ul class="pl-4 mb-0">
-              <li v-for="(adv, a) in reco.advice" :key="a">
-                <strong>{{ adv.label }}</strong>
-                <span v-if="adv.code">
-                  <br />
-                  <code class="advice-code">{{ adv.code }}</code>
-                </span>
-              </li>
-            </ul>
+            <!-- Groupement des conseils par label -->
+            <div
+              v-for="(group, gIdx) in groupByLabel(reco.advice)"
+              :key="gIdx"
+              class="mb-2"
+            >
+              <strong>{{ group.label }}</strong>
+              <ul class="pl-4 mb-0">
+                <li v-for="(code, cIdx) in group.codes" :key="cIdx">
+                  <code class="advice-code">{{ code }}</code>
+                </li>
+              </ul>
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -96,11 +101,41 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 
-const props = defineProps({
-  recs: { type: Array, required: true },
-});
+// Props et console log pour les recos sans conseils
+const props = defineProps({ recs: { type: Array, required: true } });
+const recoSansConseil = props.recs.filter((r) => !r.advice || !r.advice.length);
+console.log(
+  "%cReco sans conseils (id + title) :",
+  "color: orange; font-weight: bold;",
+  recoSansConseil.map((r) => ({ id: r.id, title: r.title, group: r.group }))
+);
 
-// Libellés groupes (catégories)
+/**
+ * Regroupe les conseils par label et collecte leurs codes
+ */
+function groupByLabel(adviceArray) {
+  return adviceArray.reduce((acc, adv) => {
+    const existing = acc.find((g) => g.label === adv.label);
+    if (existing) {
+      existing.codes.push(stripLine(adv.code));
+    } else {
+      acc.push({ label: adv.label, codes: [stripLine(adv.code)] });
+    }
+    return acc;
+  }, []);
+}
+
+/**
+ * Supprime le bullet et éventuels retours à la ligne du code conseil
+ */
+function stripLine(code) {
+  return code.replace(/^•\s*/, "").trim();
+}
+
+// Filtre et pagination
+const selectedGroup = ref(null);
+const normalizeGroup = (key) =>
+  key?.toLowerCase().replace(/\s+/g, "-") || "general";
 const groupLabels = {
   performance: "Performances",
   "best-practices": "Bonnes pratiques",
@@ -108,35 +143,22 @@ const groupLabels = {
   seo: "SEO",
   general: "Autres",
 };
-const normalizeGroup = (key) =>
-  key?.toLowerCase().replace(/\s+/g, "-") || "general";
 const getGroupLabel = (key) => groupLabels[normalizeGroup(key)] || key;
 
-// Liste unique des groupes présents dans les conseils
 const groupOptions = computed(() => {
-  // Prend toutes les catégories présentes dans les recos, triées
   const keys = [
     ...new Set(props.recs.map((r) => normalizeGroup(r.group))),
   ].filter((k) => k && k !== "general");
   return keys
-    .map((key) => ({
-      key,
-      label: getGroupLabel(key),
-    }))
+    .map((key) => ({ key, label: getGroupLabel(key) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 });
 
-// Filtre actif
-const selectedGroup = ref(null);
-
-// Liste filtrée selon la sélection
 const filteredRecs = computed(() =>
   selectedGroup.value
     ? props.recs.filter((r) => normalizeGroup(r.group) === selectedGroup.value)
     : props.recs
 );
-
-// Pagination
 const perPage = 6;
 const currentPage = ref(1);
 const pageCount = computed(() =>
@@ -149,13 +171,23 @@ const pagedRecs = computed(() =>
   )
 );
 
-// Reset page si la liste change ou filtre change
 watch(
   () => [filteredRecs.value.length, selectedGroup.value],
   () => {
     currentPage.value = 1;
   }
 );
+
+/**
+ * Format Markdown links comme précédemment
+ */
+function formatDescriptionWithLearnMore(description) {
+  if (!description) return "";
+  return description.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    '<br /><a href="$2" target="_blank" rel="noopener noreferrer" class="advice-link">En savoir plus</a>'
+  );
+}
 </script>
 
 <style scoped>
@@ -188,5 +220,17 @@ watch(
   margin-left: 6px;
   opacity: 0.99;
   border: 1.5px solid #2b3642;
+}
+.advice-link {
+  color: #57bbfa;
+  text-decoration: underline;
+  word-break: break-all;
+  transition: color 0.15s;
+  font-weight: 600;
+  margin-top: 2px;
+  display: inline-block;
+}
+.advice-link:hover {
+  color: #90e1fb;
 }
 </style>
